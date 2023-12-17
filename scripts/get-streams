@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+msg() {
+    echo " >>> $1"
+}
+
+DATE_TIME=$(date "+%A %B %d %T %Y")
+DATE_TIME_FILE=$(date "+%Y-%m-%d_%H-%M-%S")
+STREAMER_LIST=(dansgaming)
+STREAM_PLATFORM_URL="https://twitch.tv"
+DEST_DIR="/tmp/streams"
+STREAM_LOG_DIR="/var/log/streams"
+CONTAINER_IMAGE="localhost/yt-dl:latest"
+
+# Create the stream log directory if it doesn't exist
+if [[ ! -d $STREAM_LOG_DIR ]]; then
+    mkdir -p $STREAM_LOG_DIR
+fi
+
+# Make sure source and destination directories exist.
+if [ ! -d "$SOURCE_DIR" ]; then
+  msg "Source directory not found..."
+  exit 1
+fi
+
+if [ ! -d "$DEST_DIR" ]; then
+  msg "Destination directory not found..."
+  exit 1
+fi
+
+msg "Start $0 script @ $DATE_TIME"
+
+# Make sure duplicate values in the streamer list are removed
+STREAMER_LIST=($(echo "${STREAMER_LIST[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+
+for streamer in "${STREAMER_LIST[@]}"; do
+    STREAMER_DIR="$DEST_DIR/$streamer"
+    CID_FILE="/run/yt-dl-$streamer.cid"
+    CONTAINER_RUN_ARGS="--rm --cidfile $CID_FILE -v ${STREAMER_DIR}:/tmp --timeout=43200"
+    CONTAINER_ARGS="-f best -o /tmp/${streamer}_${DATE_TIME_FILE}.mp4 ${STREAM_PLATFORM_URL}/${streamer}/"
+
+    if [[ ! -d $STREAMER_DIR ]]; then
+        mkdir -p $STREAMER_DIR
+    fi
+
+    # Check if there's already a stream being downloaded based on cid file, if so skip
+    if [[ -f $CID_FILE ]]; then
+        # Check if the container is still running
+        if [[ $(podman ps -q --no-trunc | grep $(cat $CID_FILE)) ]]; then
+            msg "Stream is already being downloaded for: $streamer"
+            continue
+        else
+            msg "Stream is not being downloaded for: $streamer, removing cid file"
+            rm $CID_FILE
+        fi
+    fi
+
+    # Check if the streamer is live
+    msg "Getting stream URL for $streamer from $STREAM_PLATFORM_URL"
+    STREAMER_FULL_URL="$STREAM_PLATFORM_URL/$streamer/"
+    OUTPUT=$(podman run $CONTAINER_IMAGE -f best -g "$STREAMER_FULL_URL" 2>&1)
+
+    #msg "Got: $OUTPUT"
+
+    # Check if the stream URL has https:// in it
+    if [[ $OUTPUT == "https://"* ]]; then
+        msg "Streamer is live, starting download for: $streamer"
+
+        # Kick off the download but in the background with a log file.
+        podman run ${CONTAINER_RUN_ARGS} ${CONTAINER_IMAGE} ${CONTAINER_ARGS} >${STREAM_LOG_DIR}/${streamer}_${DATE_TIME_FILE}.log 2>&1 &
+    else
+        msg "Streamer is not live, skipping download for: $streamer"
+    fi
+
+done
+
+exit 0

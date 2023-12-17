@@ -1,0 +1,10 @@
+# Samba conf.d file which should be in /etc/conf.d
+
+# Where the log directory resides.
+log_dir="/var/log/samba"
+
+# Where main Samba configuration file(s) reside.
+config_dir="/etc/samba"
+
+# Where the share(s) reside on the host.
+share_dir="/var/lib/samba"

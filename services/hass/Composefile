@@ -1,0 +1,66 @@
+version: "3.7"
+
+services:
+  app:
+    image: ghcr.io/home-assistant/home-assistant:latest
+    container_name: hass-app-service
+    hostname: hass
+    restart: unless-stopped
+    environment:
+      - DISABLE_JEMALLOC=true
+    ports:
+      #- "8123:8123"
+      - "1900:1900"
+      - "5353:5353"
+    volumes:
+      - "app_data:/config"
+      - "media_data:/config/media"
+      - "/etc/localtime:/etc/localtime:ro"
+    devices:
+      - "/dev/ttyACM0:/dev/ttyACM0"
+      - "/dev/dri:/dev/dri"
+    privileged: true
+    command: python -m homeassistant --config /config --log-file /dev/stdout
+    networks:
+      default:
+        aliases:
+          # hostname on "proxy-net"
+          - hass
+          - home
+    labels:
+      - "io.containers.autoupdate=registry"
+  mq:
+    image: eclipse-mosquitto:latest
+    container_name: hass-mq-service
+    hostname: mq
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - "./conf/mosquitto.conf:/mosquitto/config/mosquitto.conf"
+      - "./conf/mosquitto_creds.conf:/mosquitto/config/credentials.conf"
+      - "mq_data:/mosquitto/data"
+    networks:
+      default:
+        aliases:
+          # hostname on "proxy-net"
+          - mq
+    labels:
+      - "io.containers.autoupdate=registry"
+
+networks:
+  default:
+    external: true
+    name: proxy-net
+
+volumes:
+  app_data:
+    labels:
+      backup: "true"
+  media_data:
+    labels:
+      backup: "true"
+  mq_data:
+    labels:
+      backup: "true"

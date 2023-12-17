@@ -1,0 +1,32 @@
+#!/bin/env sh
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+    echo " >>> $1"
+}
+
+SNAPSHOT_DATASET=$1
+SNAPSHOT_LABEL=$2
+SNAPSHOT_DATE_TIMESTAMP=$(date +%m-%d-%Y-%s)
+
+# Check if snapshot dataset or label argument is not empty.
+if [ -z "$SNAPSHOT_DATASET" ] || [ -z "$SNAPSHOT_LABEL" ]; then
+    echo "Usage: $0 <dataset> <label>"
+    exit 1
+fi
+
+# Check if zfs dataset exists
+if ! zfs list "$SNAPSHOT_DATASET" >/dev/null 2>&1; then
+    msg "Error: $SNAPSHOT_DATASET does not exist"
+    exit 1
+fi
+
+# Run zfs snapshot command
+msg "Creating snapshot $SNAPSHOT_DATASET@$SNAPSHOT_LABEL-$SNAPSHOT_DATE_TIMESTAMP"
+
+zfs snapshot "$SNAPSHOT_DATASET"@"$SNAPSHOT_LABEL"-"$SNAPSHOT_DATE_TIMESTAMP"
+
+exit 0

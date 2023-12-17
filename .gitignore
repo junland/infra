@@ -1,0 +1,64 @@
+# log files
+*.log
+
+# os images
+*.iso
+*.raw
+*.qcow2
+*.vmdk
+*.vdi
+*.vhd
+*.vhdx
+
+# Linux distro packages
+**/packages/**/*.rpm
+**/packages/**/*.deb
+**/packages/**/*.ipkg
+
+# ansbile.
+ansible/roles/apps/znc/files/*.tar.*
+ansible/*inventory.ini
+ansible/*inventory.yml
+ansible/*inv.yml
+ansible/*inv.ini
+ansible/*-run.yml
+ansible/*-run.ini
+
+# packer
+packer/packer_cache/
+packer/centos*-output*/*
+packer/rocky*-output*/*
+packer/alpine*-output*/*
+packer/serial.out
+packer/*.out
+packer/upload/
+packer/files/upload/*
+!packer/files/upload/.gitkeep
+
+# terraform
+**/.terraform/*
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/crash.log
+terraform/crash.*.log
+terraform/*.tfvars
+terraform/*.tfvars.json
+terraform/override.tf
+terraform/override.tf.json
+terraform/*_override.tf
+terraform/*_override.tf.json
+terraform/.terraformrc
+terraform/.terraform.rc
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+*.tfstate
+*.tfstate.*
+**/.terraform/*
+*.lock.hcl
+
+# vscode
+.vscode/*
+.history/
+*.vsix

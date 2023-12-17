@@ -1,0 +1,19 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+    echo " >>> $1"
+}
+
+DATE_TIME=$(date +%m-%d-%Y-%s)
+
+# Run snapshot on all ZFS datasets
+for dataset in $(zfs list -H -o name | grep -v archive); do
+    msg "Taking snapshot of $dataset @ $DATE_TIME..."
+    zfs snapshot $dataset@$DATE_TIME
+done
+
+exit 0

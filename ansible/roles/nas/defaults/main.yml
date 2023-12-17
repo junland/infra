@@ -1,0 +1,15 @@
+---
+# defaults file for nas role
+
+nas_main_pool: storage
+nas_mount_dir: /mnt/storage
+
+# array of directories to create in the main pool
+nas_dirs:
+  - "{{ nas_mount_dir }}/apps"
+  - "{{ nas_mount_dir }}/share"
+  - "{{ nas_mount_dir }}/media"
+  - "{{ nas_mount_dir }}/home"
+
+# refer to scripts directory outside of roles two directories down.
+scripts_dir: "{{ playbook_dir }}/../scripts"

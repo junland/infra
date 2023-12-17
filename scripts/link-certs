@@ -1,0 +1,75 @@
+#!/bin/bash
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+    echo " >>> $1"
+}
+
+# Check if file exists
+
+CERT_DIR=${CERT_DIR:="/etc/pki/tls/certs"}
+KEY_DIR=${KEY_DIR:="/etc/pki/tls/private"}
+OCSP_DIR=${OCSP_DIR:="/etc/pki/tls/certs"}
+DOMAIN_NAME=$1
+DEST_DIR=$2
+
+# Check if the domain name parameter is not empty.
+if [ -z "$DOMAIN_NAME" ]; then
+    echo "Usage: $0 <domain name> <destination directory>"
+    exit 1
+fi
+
+# Check if the destination directory parameter is not empty.
+if [ -z "$DEST_DIR" ]; then
+    echo "Usage: $0 <domain name> <destination directory>"
+    exit 1
+fi
+
+# Check if DEST_DIR is a directory.
+if [ ! -d "$DEST_DIR" ]; then
+    echo "DEST_DIR ($DEST_DIR) is not a directory"
+    exit 1
+fi
+
+# Check if CERT_DIR is a directory.`    `
+if [ ! -d "$CERT_DIR" ]; then
+    echo "CERT_DIR ($CERT_DIR) is not a directory"
+    exit 1
+fi
+
+# Check if KEY_DIR is a directory.
+if [ ! -d "$KEY_DIR" ]; then
+    echo "KEY_DIR ($KEY_DIR) is not a directory"
+    exit 1
+fi
+
+# Check if OCSP_DIR is a directory.`    `
+if [ ! -d "$OCSP_DIR" ]; then
+    echo "OCSP_DIR ($OCSP_DIR) is not a directory"
+    exit 1
+fi
+
+msg "Linking cert for $DOMAIN_NAME"
+
+ln -sv "$CERT_DIR/$DOMAIN_NAME.cert" "$DEST_DIR/$DOMAIN_NAME.cert"
+
+msg "Linking key for $DOMAIN_NAME"
+
+ln -sv "$KEY_DIR/$DOMAIN_NAME.key" "$DEST_DIR/$DOMAIN_NAME.cert.key"
+
+# Check if OCSP issuer file are present, if so link it.
+if [ -f "$OCSP_DIR/$DOMAIN_NAME.cert.pem.issuer" ]; then
+    msg "Linking OCSP issuer for $DOMAIN_NAME"
+    ln -sv "$OCSP_DIR/$DOMAIN_NAME.cert.pem.issuer" "$DEST_DIR/$DOMAIN_NAME.cert.pem.issuer"
+fi
+
+# Check if OCSP file are present, if so link it.
+if [ -f "$OCSP_DIR/$DOMAIN_NAME.cert.pem.ocsp" ]; then
+    msg "Linking OCSP file for $DOMAIN_NAME"
+    ln -sv "$OCSP_DIR/$DOMAIN_NAME.cert.pem.ocsp" "$DEST_DIR/$DOMAIN_NAME.cert.pem.ocsp"
+fi
+
+exit 0

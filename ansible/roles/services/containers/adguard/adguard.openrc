@@ -1,0 +1,29 @@
+#!/sbin/openrc-run
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+name="Adguard Service"
+shortname="adguard"
+description="Adguard via podman"
+command="/usr/bin/podman"
+command_args="-f /etc/$shortname/Composefile"
+compose_file="/etc/$shortname/Composefile"
+
+depend() {
+    need localmount net zfs-mount podman
+    use dns
+}
+
+start() {
+    ebegin "Starting $name"
+    ${command}-compose $command_args up -d
+}
+
+stop() {
+    ebegin "Stopping $name"
+    ${command}-compose $command_args down
+}
+
+status() {
+    ${command}-compose $command_args ps
+}

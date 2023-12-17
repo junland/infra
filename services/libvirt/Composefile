@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Containerfile
+    image: localhost/virtd:latest
+    container_name: libvirtd-app-service
+    hostname: 'libvirtd'
+    restart: unless-stopped
+    volumes:
+      - 'run_data:/run/'
+    privileged: true
+    depends_on:
+      - app-log
+    command: /usr/sbin/virtchd -v
+  app-lock:
+    build:
+      context: .
+      dockerfile: Containerfile
+    image: localhost/virtd:latest
+    container_name: libvirtd-app-lock-service
+    hostname: 'libvirtd'
+    restart: unless-stopped
+    volumes:
+      - 'run_data:/run/'
+    privileged: true
+    depends_on:
+      - app-log
+    command: /usr/sbin/virtlockd -v
+  app-log:
+    image: localhost/libvirtd:latest
+    container_name: libvirtd-app-log-service
+    hostname: 'libvirtd-log'
+    restart: unless-stopped
+    volumes:
+      - 'run_data:/run/'
+    privileged: true
+    command: /usr/sbin/virtlogd
+
+volumes:
+  run_data:
+    labels:
+      backup: 'false'

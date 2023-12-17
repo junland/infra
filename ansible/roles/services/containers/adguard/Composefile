@@ -1,0 +1,22 @@
+version: '3.4'
+services:
+  app:
+    image: 'adguard/adguardhome:latest'
+    restart: unless-stopped
+    ports:
+      - '9093:3000'
+      - '53:53/tcp'
+      - '53:53/udp'
+      - '5443:5443/tcp'
+      - '5443:5443/udp'
+    volumes:
+      - 'app_data:/opt/adguardhome/work'
+      - 'conf_data:/opt/adguardhome/conf'
+
+volumes:
+  app_data:
+    labels:
+      backup: 'true'
+  conf_data:
+    labels:
+      backup: 'true'

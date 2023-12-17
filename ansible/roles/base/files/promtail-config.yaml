@@ -1,0 +1,70 @@
+# Generated from Ansible
+server:
+    http_listen_port: 9080
+    grpc_listen_port: 0
+
+positions:
+    filename: /tmp/positions.yaml
+
+# Generated from Ansible
+# promtail configuration file.
+
+clients:
+    - url: http://localhost:3100/loki/api/v1/push
+
+scrape_configs:
+    - job_name: system
+      static_configs:
+          - targets:
+                - localhost
+            labels:
+                job: varlogs
+                __path__: /var/log/*.log
+    - job_name: system_cron
+      static_configs:
+          - targets:
+                - localhost
+            labels:
+                job: varlogs_cron
+                __path__: /var/log/cron/*.log
+    - job_name: system_samba
+      static_configs:
+          - targets:
+                - localhost
+            labels:
+                job: varlogs_samba
+                __path__: /var/log/samba/*log*
+    - job_name: system_libvirt
+      static_configs:
+          - targets:
+                - localhost
+            labels:
+                job: varlogs_libvirt
+                __path__: /var/log/libvirt/*log
+    - job_name: system_audit
+      static_configs:
+          - targets:
+                - localhost
+            labels:
+                job: varlogs_audit
+                __path__: /var/log/audit/*log
+    - job_name: rsyslog
+      static_configs:
+          - targets:
+                - localhost
+            labels:
+                job: varlogs_rsyslog
+                __path__: /var/log/rsyslog/*.log
+      relabel_configs:
+          - source_labels: ["__syslog_message_hostname"]
+            target_label: "host"
+    - job_name: journal
+      journal:
+          json: false
+          max_age: 12h
+          path: /var/log/journal
+          labels:
+              job: systemd-journal
+      relabel_configs:
+          - source_labels: ["__journal__systemd_unit"]
+            target_label: "unit"

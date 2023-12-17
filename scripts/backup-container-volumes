@@ -1,0 +1,66 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+    echo " >>> $1"
+}
+
+DATE=$(date +%Y%m%d)
+DATE_TIME=$(date "+%A %B %d %T %Y")
+BACKUP_DIR="/mnt/storage/backup"
+OPT_VOLUMES=""
+
+# Detect if we are using podman or docker
+if [ -x "$(command -v podman)" ]; then
+    CONTAINER_CMD="podman"
+elif [ -x "$(command -v docker)" ]; then
+    CONTAINER_CMD="docker"
+else
+    msg "Error: podman or docker is not installed."
+    exit 1
+fi
+
+# Make sure BACKUP_DIR is set
+if [ -z "$BACKUP_DIR" ]; then
+    msg "Error: BACKUP_DIR is not set."
+    exit 1
+fi
+
+# Make sure directory is mounted and or exists
+if [ ! -d $BACKUP_DIR ]; then
+    msg "Backup directory does not exist: $BACKUP_DIR"
+    msg "Create the specified directory or change the BACKUP_DIR variable in this script."
+    exit 1
+fi
+
+msg "Start $0 script @ $DATE_TIME"
+
+# Loop through all container volumes
+for volume in $($CONTAINER_CMD volume ls -q); do
+    # Get volume labels
+    LABELS=$($CONTAINER_CMD volume inspect $volume --format '{{ .Labels }}')
+
+    # Check if volume has "backup:true" label
+    if [ echo $LABELS | grep "backup:true" ]; then
+        # Get container name
+        CONTAINER=$($CONTAINER_CMD volume inspect $volume --format '{{ .Labels.container }}')
+
+        msg "Backing up volume: $volume"
+        $CONTAINER_CMD volume export "$volume" | gzip >$BACKUP_DIR/podman-vol-"$volume"-"$DATE".tar.gz
+    fi
+done
+
+# Backup optional volumes.
+for volume in $OPT_VOLUMES; do
+    msg "Backing up optional volume: $volume"
+    $CONTAINER_CMD volume export "$volume" | gzip >$BACKUP_DIR/podman-vol-"$volume"-"$DATE".tar.gz
+done
+
+# Clean up old backups older than 7 days
+
+find $BACKUP_DIR -name "podman-vol-*.tar.gz" -mtime +7 -exec rm {} \;
+
+exit 0

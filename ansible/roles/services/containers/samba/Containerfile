@@ -1,0 +1,19 @@
+FROM alpine:edge
+
+RUN apk add --no-cache \
+    samba-common-tools \
+    samba-client \
+    samba-server \
+    tzdata \
+    bash \
+    shadow
+
+COPY entrypoint.sh /usr/local/bin
+
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+VOLUME ["/etc/samba", "/share", "/var/lib/samba", "/var/log/samba"]
+
+EXPOSE 445
+
+ENTRYPOINT ["entrypoint.sh"]

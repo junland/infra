@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+    echo " >>> $1"
+}
+
+BASE_MOUNTPOINT=/mnt/storage
+BACKUP_DATE_TIMESTAMP=$(date +%m-%d-%Y-%s)
+BACKUP_FILE=$1/backup-"$BACKUP_DATE_TIMESTAMP".tgz
+TMP_DIR_LIST_FILE=/tmp/gen-archive-flags-$BACKUP_DATE_TIMESTAMP.tmp
+EXCLUDE_FLAGS=()
+
+# Check if first argument is not empty and is a directory.
+if [ -z "$1" ] || [ ! -d "$1" ]; then
+    echo "Usage: $0 <directory>"
+    exit 1
+fi
+
+# Check if pigz is installed.
+if ! command -v pigz >/dev/null 2>&1; then
+    echo "Error: pigz is not installed"
+    exit 1
+fi
+
+msg "Generateing archive file..."
+
+find $BASE_MOUNTPOINT -type f -name .skip_archive -printf '%P\n' >"$TMP_DIR_LIST_FILE"
+
+# Create EXCLUDE_FLAGS array from gen-exclude-flags.tmp
+while read -r EXCLUDE_FLAG; do
+    EXCLUDE_FLAGS+=("--exclude=$(dirname "$EXCLUDE_FLAG")")
+done <"$TMP_DIR_LIST_FILE"
+
+# Create archive
+tar "${EXCLUDE_FLAGS[@]}" -I pigz -cvf "$BACKUP_FILE" -C $BASE_MOUNTPOINT .
+
+msg "Created archive file: $BACKUP_FILE"
+
+msg "Cleaning up..."
+
+rm -f "$TMP_DIR_LIST_FILE"

@@ -1,0 +1,25 @@
+FROM haproxy:latest
+
+ARG ARCHITECTURE=amd64
+ARG DATAPLANEAPI_VERSION=2.8.4
+
+ENV ARCHITECTURE $ARCHITECTURE
+ENV DATAPLANEAPI_VERSION $DATAPLANEAPI_VERSION
+
+USER root
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN wget -q https://github.com/haproxytech/dataplaneapi/releases/download/v${DATAPLANEAPI_VERSION}/dataplaneapi_${DATAPLANEAPI_VERSION}_linux_${ARCHITECTURE}.deb -O /tmp/dataplaneapi.deb \
+    && apt-get install /tmp/dataplaneapi.deb -y \
+    && rm /tmp/dataplaneapi.deb
+
+RUN apt-get purge -y --auto-remove wget
+
+RUN mkdir -p /etc/haproxy
+
+RUN mkdir -p /run/haproxy
+
+RUN chown -R haproxy:haproxy /etc/haproxy /run/haproxy

@@ -1,0 +1,46 @@
+#!/bin/bash
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+    echo " >>> $1"
+}
+
+CERT_LIST_FILE=$1
+
+# Check if the certificate list file variable is not empty.
+if [ -z "$CERT_LIST_FILE" ]; then
+    echo "Usage: $0 <certificate list file>"
+    exit 1
+fi
+
+if [ ! -f "$CERT_LIST_FILE" ]; then
+    msg "$CERT_LIST_FILE does not exist or is not a file."
+    exit 1
+fi
+
+# Make sure gen-ocsp is installed.
+if ! command -v gen-ocsp ; then
+    msg "gen-ocsp is not installed."
+    exit 1
+fi
+
+msg "Processing certificate list file..."
+
+while read -r CERT_FILE; do
+    msg "Processing $CERT_FILE..."
+
+    # Make sure the certificate file exists, if not skip it.
+    if [ ! -f "$CERT_FILE" ]; then
+        msg "$CERT_FILE does not exist or is not a file."
+        continue
+    fi
+
+    gen-ocsp "$CERT_FILE"
+done < "$CERT_LIST_FILE"
+
+msg "Completed processing certificate list file."
+
+exit 0

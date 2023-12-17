@@ -1,0 +1,37 @@
+#!/bin/bash
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+  echo " >>> $1"
+}
+
+DATE_TIME=$(date "+%A %B %d %T %Y")
+SOURCE_DIR="/mnt/storage/tmp/tube"
+DEST_DIR="/mnt/storage/media/tube"
+
+msg "Start $0 script @ $DATE_TIME"
+
+# Make sure source and destination directories exist.
+if [ ! -d "$SOURCE_DIR" ]; then
+  msg "Source directory not found..."
+  exit 1
+fi
+
+if [ ! -d "$DEST_DIR" ]; then
+  msg "Destination directory not found..."
+  exit 1
+fi
+
+# Move the files
+msg "Moving files to destination directory..."
+rsync -av --include='*/' --include='*.mp4' --include='*.webm' \
+          --exclude='*.part' --exclude='*.part.webm' --exclude='*.part.mp4' \
+          --exclude='*.temp' --exclude='*.temp.webm' --exclude='*.temp.mp4' \
+          --exclude='*.*.webm' --exclude='*.*.mp4' \
+          --exclude='*' \
+          "$SOURCE_DIR/" "$DEST_DIR/"
+
+exit 0

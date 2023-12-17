@@ -1,0 +1,25 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+# Backup directory
+BACKUP_DIR="/mnt/storage/backup"
+
+# Make sure directory is mounted
+if [ ! -d $BACKUP_DIR ]; then
+    echo "Backup directory does not exist: $BACKUP_DIR"
+    echo "Create the specified directory or change the BACKUP_DIR variable in this script."
+    exit 1
+fi
+
+# Loop through all volumes and backup to a tar file
+for vol in $(podman volume ls -q); do
+    echo "Backing up for $vol"
+    podman volume export "$vol" | gzip >$BACKUP_DIR/podman-vol-"$vol".tar.gz
+
+    echo "Cleaning up old backups for $vol"
+    # Clean up old backups older than 7 days
+    find $BACKUP_DIR -name "podman-vol-$vol.tar.gz" -mtime +7 -exec rm {} \;
+done
+
+exit 0

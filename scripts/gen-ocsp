@@ -1,0 +1,49 @@
+#!/bin/bash
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+    echo " >>> $1"
+}
+
+CERT_FILE=$1
+
+# Check if the certificate file variable is not empty.
+if [ -z "$CERT_FILE" ]; then
+    echo "Usage: $0 <certificate file>"
+    exit 1
+fi
+
+if [ ! -f "$CERT_FILE" ]; then
+    msg "$CERT_FILE does not exist or is not a file."
+    exit 1
+fi
+
+msg "Getting issuer URL..."
+
+CERT_CA_ISSUER_URL=$(cat "$CERT_FILE" | openssl x509 -text -noout | grep "CA Issuers" | grep -Eo "(http|https)://[a-zA-Z0-9./?=_%:-]*")
+
+msg "Getting OCSP URL..."
+
+CERT_CA_OCSP_URL=$(cat "$CERT_FILE" | openssl x509 -text -noout | grep "OCSP - URI" | grep -Eo "(http|https)://[a-zA-Z0-9./?=_%:-]*")
+CERT_CA_OCSP_URL_CLEAN=$(echo "$CERT_CA_OCSP_URL" | cut -d/ -f3)
+
+msg "Processing issuer content..."
+
+wget -q -O- "$CERT_CA_ISSUER_URL" | openssl x509 -inform DER -outform PEM -out "$CERT_FILE".issuer.new
+
+msg "Creating OCSP file..."
+
+openssl ocsp -no_nonce -issuer "$CERT_FILE".issuer.new -cert "$CERT_FILE" -url "$CERT_CA_OCSP_URL" -header Host="$CERT_CA_OCSP_URL_CLEAN" -respout "$CERT_FILE".ocsp.new
+
+msg "Migrating issuer and OCSP file..."
+
+mv -vf "$CERT_FILE".issuer.new "$CERT_FILE".issuer
+
+mv -vf "$CERT_FILE".ocsp.new "$CERT_FILE".ocsp
+
+msg "Done!"
+
+exit 0

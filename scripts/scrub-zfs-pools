@@ -1,0 +1,28 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+    echo " >>> $1"
+}
+
+DATE_TIME=$(date +%m-%d-%Y-%s)
+
+msg "Start $0 script @ $DATE_TIME"
+
+# Make sure zfs is installed
+if ! command -v zpool &> /dev/null; then
+    msg "zpool command not found..."
+    exit 1
+fi
+
+# Run scrub on all ZFS pools
+for pool in $(zpool list -H -o name); do
+    TIME_SCRUB=$(date +%m-%d-%Y-%s)
+    msg "Running scrub on $POOL @ $TIME_SCRUB ..."
+    zpool scrub $pool
+done
+
+exit 0

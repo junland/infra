@@ -1,0 +1,10 @@
+[Unit]
+Description=Promtail Log Sender
+
+[Service]
+TimeoutStartSec=0
+Restart=always
+ExecStart=/usr/local/bin/promtail -config.file=/etc/promtail/config.yaml
+
+[Install]
+WantedBy=default.target

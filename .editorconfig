@@ -1,0 +1,21 @@
+# EditorConfig: http://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Defaults for all editor files
+[*]
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+[*.sh]
+# like -i=4
+indent_style = space
+indent_size = 2
+binary_next_line   = true  # like -bn
+switch_case_indent = true  # like -ci
+
+[Makefile]
+indent_style = tab

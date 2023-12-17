@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+  echo " >>> $1"
+}
+
+DATE_TIME=$(date "+%A %B %d %T %Y")
+SOURCE_DIR="/mnt/storage-fast/tmp/streams"
+DEST_DIR="/mnt/storage-slow/.stash/streams"
+
+msg "Start $0 script @ $DATE_TIME"
+
+# Make sure source and destination directories exist.
+if [ ! -d "$SOURCE_DIR" ]; then
+  msg "Source directory not found..."
+  exit 1
+fi
+
+if [ ! -d "$DEST_DIR" ]; then
+  msg "Destination directory not found..."
+  exit 1
+fi
+
+for file in $(find "$SOURCE_DIR" -type f -name "*.mp4" -not -name "*.temp.mp4"); do
+    msg "Processing file: $file"
+
+    BASE_DIR=$(basename $(dirname $file))
+
+    msg "Creating destination directory: $DEST_DIR/$BASE_DIR"
+    mkdir -p "$DEST_DIR/$(basename $(dirname $file))"
+
+    # Move file to destination directory using rsync
+    msg "Moving file to destination directory: $DEST_DIR/$BASE_DIR"
+    rsync -av --remove-source-files $file "$DEST_DIR/$(basename $(dirname $file))"
+done
+
+#chown stash:stash -R $DEST_DIR/..
+
+msg "Removing empty source directories..."
+find $SOURCE_DIR -type d -empty -delete
+
+msg "Removing empty destination directories..."
+find $DEST_DIR -type d -empty -delete
+
+exit 0

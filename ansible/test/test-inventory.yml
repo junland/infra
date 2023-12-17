@@ -1,0 +1,7 @@
+---
+internal_servers:
+    hosts:
+        127.0.0.1:
+            docker_testing: true
+            nfs_enabled: true
+            samba_enabled: true

@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+msg() {
+  echo " >>> $1"
+}
+
+DEBUG=false
+DATE_TIME=$(date "+%A %B %d %T %Y")
+DATE_YEAR=$(date "+%Y-%m-%d")
+TUBE_CHANNEL_LIST=(  )
+DEST_DIR="/mnt/storage-fast/tmp/tube"
+CONTAINER_IMAGE="localhost/yt-dl:latest"
+
+msg "Start $0 script @ $DATE_TIME"
+
+TUBE_CHANNEL_LIST=($(echo "${TUBE_CHANNEL_LIST[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+
+# Make sure destination directories exist.
+if [ ! -d "$DEST_DIR" ]; then
+  msg "Destination directory not found..."
+  exit 1
+fi
+
+for channel in "${TUBE_CHANNEL_LIST[@]}"; do
+    CID_FILE="/run/yt-dl-$channel.cid"
+    CONTAINER_RUN_ARGS="-d --rm --cidfile $CID_FILE -v ${DEST_DIR}:/tmp --timeout=3600 --entrypoint /usr/local/bin/yt-dl-channel"
+    CONTAINER_ARGS="-i $channel -d /tmp"
+
+    # Check if there's in progress downloads based on cid file, if so skip
+    if [[ -f $CID_FILE ]]; then
+        # Check if the container is still running
+        if [[ $(podman ps -q --no-trunc | grep "$(cat "$CID_FILE")") ]]; then
+            msg "Videos is already being downloaded for: $channel"
+            continue
+        else
+            msg "Videos is not being downloaded for: $channel, removing cid file"
+            rm "$CID_FILE"
+        fi
+    fi
+
+    msg "Running container for channel $channel"
+    podman run $CONTAINER_RUN_ARGS $CONTAINER_IMAGE $CONTAINER_ARGS
+done
+
+exit 0

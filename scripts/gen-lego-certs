@@ -1,0 +1,40 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+    echo " >>> $1"
+}
+
+LEGO_DNS_TYPE=cloudflare
+LEGO_DATA_DIR=$HOME/.lego
+LEGO_CERT_DIR=$LEGO_DATA_DIR/certificates
+CF_API_EMAIL=myemail@example.com
+CF_DNS_API_TOKEN=mytoken
+CF_DOMAIN=*.example.com
+
+export CF_DNS_API_TOKEN CF_API_EMAIL CF_DOMAIN
+
+# Check if certificates exist in cert directory.
+if [ -f "$LEGO_CERT_DIR/*${CF_DOMAIN#*.}.crt" ] || [ -f "$LEGO_CERT_DIR/_.${CF_DOMAIN#*.}.crt" ]; then
+    msg "Certificate exists. Renewing certificate..."
+    lego --accept-tos --path "$LEGO_DATA_DIR" \
+        --dns $LEGO_DNS_TYPE --domains "$CF_DOMAIN" --email $CF_API_EMAIL renew --no-bundle
+    exit 0
+fi
+
+# If no certificates exist, create new ones.
+msg "No certificate found. Creating new certificate..."
+
+lego --accept-tos --path "$LEGO_DATA_DIR" \
+    --dns $LEGO_DNS_TYPE --domains "$CF_DOMAIN" --email $CF_API_EMAIL run --no-bundle
+
+msg "Setting permissions on cert(s)..."
+chmod 644 $SSL_CERT_DIR/"${CF_DOMAIN#*.}"/*.crt
+
+msg "Setting permissions on key(s)..."
+chmod 600 $SSL_CERT_DIR/"${CF_DOMAIN#*.}"/*.key
+
+exit 0

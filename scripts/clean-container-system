@@ -1,0 +1,38 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+    echo " >>> $1"
+}
+
+DATE_TIME=$(date "+%A %B %d %T %Y")
+USERS="root"
+
+# Detect if we are using podman or docker
+if [ -x "$(command -v podman)" ]; then
+    CONTAINER_CMD="podman"
+elif [ -x "$(command -v docker)" ]; then
+    CONTAINER_CMD="docker"
+else
+    msg "Error: podman or docker is not installed."
+    exit 1
+fi
+
+msg "Start $0 script @ $DATE_TIME"
+
+# Loop through all users
+for user in $USERS; do
+    # Make sure user exists
+    if ! id -u "$user" >/dev/null 2>&1; then
+        msg "User does not exist: $user"
+        continue
+    fi
+
+    msg "Cleaning podman system for $user"
+    su - "$user" -c "$command system prune"
+done
+
+exit 0

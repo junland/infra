@@ -1,0 +1,36 @@
+#!/bin/bash
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+    echo -e "\e[94m >>> $1 \e[0m"
+}
+
+msg_fail() {
+    echo -e "\e[31m >>> $1 \e[0m"
+    exit 1
+}
+
+OS_TITLE="$(grep "^NAME=" /etc/os-release | cut -d '"' -f 2)"
+NEW_OS_TITLE="InfraOS"
+
+[ "${EUID}" -eq "0" ] || msg_fail "$0: Script must be run via sudo or root user"
+
+msg "Update GRUB..."
+
+grub2-mkconfig -o /etc/grub2.cfg
+
+msg "Update GRUB (UEFI)..."
+
+grub2-mkconfig -o /etc/grub2-efi.cfg
+
+for config_file in /boot/loader/entries/*.conf; do
+    msg "Processing $config_file entry file.."
+    sed -i "s/^title $OS_TITLE/title $NEW_OS_TITLE/g" $config_file
+done
+
+msg "Rebranding complete..."
+
+exit 0

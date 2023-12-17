@@ -1,0 +1,50 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+    echo " >>> $1" >>$LOG_FILE
+}
+
+LOG_FILE="/var/log/external-backup.log"
+DISK_LABEL="BACKUP"
+FILE_STAMP=".backup_dir"
+TIME_STAMP=$(date +%Y-%m-%d_%H-%M-%S)
+SEARCH_DIR="/mnt"
+
+# Find all directories with the file stamp.
+DIR_LIST=$(find $SEARCH_DIR -type f -name $FILE_STAMP -exec dirname {} \;)
+
+# Mount the disk with the label and exit if it fails.
+if [ -L "/dev/disk/by-label/$DISK_LABEL" ]; then
+    # Mount the disk with the label and exit if it fails.
+    msg "Mounting disk with label $DISK_LABEL..."
+    mkdir -p /mnt/external-backup
+    mount -t ntfs3 /dev/disk/by-label/$DISK_LABEL /mnt/external-backup || exit 1
+
+    sleep 3
+
+    # Beep 3 times high really fast.
+    beep -r 3 -d 150 -f 1500 -l 100
+
+    msg "External backup device ready..."
+
+    # Backup the directories using tar.gz
+    for DIR in $DIR_LIST; do
+        msg "Backing up directory: $DIR"
+        tar -czfv /mnt/external-backup/"$TIME_STAMP"-"$(basename "$DIR")".tar.gz "$DIR" >>$LOG_FILE 2>&1
+    done
+
+    # Unmount the disk.
+    msg "Unmounting disk with label $DISK_LABEL..."
+    umount /mnt/external-backup
+
+    # Beep 3 times low slow.
+    beep -r 3 -d 300 -f 1000 -l 100
+fi
+
+rmdir /mnt/external-backup
+
+msg "Backup complete."

@@ -1,0 +1,27 @@
+version: "3"
+
+services:
+  app:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun-app-service
+    hostname: gluetun
+    restart: unless-stopped
+    environment:
+      - VPN_SERVICE_PROVIDER=myprovider
+      - OPENVPN_USER=myusername
+      - OPENVPN_PASSWORD=1234567890
+      - OPENVPN_IPV6=off
+      - SERVER_REGIONS=myregion
+    volumes:
+      - app_data:/gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    labels:
+      - "io.containers.autoupdate=registry"
+
+volumes:
+  app_data:
+   labels:
+     backup: "true"

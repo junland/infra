@@ -1,0 +1,52 @@
+---
+- name: Install haproxy package
+  dnf:
+      name:
+          - haproxy
+      state: latest
+      update_cache: true
+  when:
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+
+- name: Create needed directories
+  file:
+    path: "{{ item.path }}"
+    state: directory
+  when: item.when|bool == true
+  loop:
+    - { path: /etc/haproxy, when: true }
+    - { path: /etc/haproxy/certs, when: true }
+    - { path: /etc/haproxy/backends, when: true }
+    - { path: /etc/haproxy/maps, when: true }
+
+- name: Add service file
+  copy:
+    src: haproxy.service
+    dest: "/usr/lib/systemd/system/haproxy.service"
+    owner: root
+    group: root
+  when: ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+
+- name: Remove default configuration file
+  file:
+    state: absent
+    path: "/etc/haproxy/haproxy.cfg"
+
+- name: Add configuration file
+  copy:
+    src: haproxy.conf
+    dest: "/etc/haproxy/haproxy.conf"
+    owner: root
+    group: root
+
+- name: Add rsyslog specific configuration
+  copy:
+    src: haproxy-rsyslog.conf
+    dest: "/etc/rsyslog.d/haproxy.conf"
+    owner: root
+    group: root
+  when: ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes

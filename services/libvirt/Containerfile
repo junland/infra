@@ -1,0 +1,33 @@
+FROM alpine
+
+RUN apk add --no-cache \
+    supervisor \
+    ovmf \
+    seabios \
+    libvirt-client \
+    libvirt-daemon \
+    libvirt-common-drivers \
+    libvirt-qemu \
+    qemu-system-x86_64 \
+    qemu-block-curl \
+    qemu-block-dmg-bz2 \
+    qemu-block-nfs \
+    qemu-block-ssh \
+    qemu-hw-display-virtio-gpu \
+    qemu-hw-display-virtio-gpu-pci \
+    qemu-hw-display-virtio-vga \
+    qemu-hw-usb-redirect \
+    qemu-img \
+    && rm -rf /var/cache/apk/*
+
+RUN rm -rf /etc/opt /etc/lvm /etc/init.d /etc/conf.d
+
+RUN mkdir /etc/libvirt.orig && cp -Rv /etc/libvirt /etc/libvirt.orig
+
+COPY conf/ /etc/libvirt/
+
+COPY supervisord.conf /etc/supervisord.conf
+
+VOLUME ["/var/run/libvirt/", "/var/lib/libvirt"]
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

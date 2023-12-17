@@ -1,0 +1,45 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+    echo " >>> $1"
+}
+
+DATE_TIME=$(date "+%A %B %d %T %Y")
+LEGO_DNS_TYPE=cloudflare
+LEGO_DATA_DIR=$HOME/.lego
+LEGO_CERT_DIR=$LEGO_DATA_DIR/certificates
+CF_API_EMAIL=email@gmail.com
+CF_DNS_API_TOKEN=somekey
+CF_DOMAIN="example.com"
+OUTPUT_CERT_DIR=/etc/ssl/certs
+
+export CF_DNS_API_TOKEN CF_API_EMAIL CF_DOMAIN
+
+msg "Start $0 script @ $DATE_TIME"
+
+# Check if certificates exist in cert directory.
+for domain in $CF_DOMAINS; do
+    msg "Renewing certificate: $domain"
+    lego --accept-tos --path "$LEGO_DATA_DIR" \
+        --dns $LEGO_DNS_TYPE --domains "$domain" --email $CF_API_EMAIL renew --no-bundle --days 90
+
+    msg "Creating combined PEM certificate..."
+    cat 644 $LEGO_CERT_DIR/$domain.crt $LEGO_CERT_DIR/$domain.key >$LEGO_CERT_DIR/$domain.pem
+
+    msg "Setting permissions on created cert..."
+    chmod 644 $LEGO_CERT_DIR/$domain.crt
+
+    msg "Setting permissions on created key..."
+    chmod 600 $LEGO_CERT_DIR/$domain.key
+
+    msg "Copying combined PEM certificate..."
+    cat $LEGO_CERT_DIR/$domain.pem >$OUTPUT_CERT_DIR/$domain.pem
+
+    exit 0
+done
+
+exit 0

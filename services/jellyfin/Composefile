@@ -1,0 +1,38 @@
+version: '3.7'
+
+services:
+  app:
+    image: docker.io/jellyfin/jellyfin:latest
+    container_name: jellyfin-app-service
+    hostname: jellyfin
+    restart: unless-stopped
+    environment:
+      - JELLYFIN_PublishedServerUrl=https://jellyfin.lucoa.jlab.space
+    runtime: nvidia
+    volumes:
+      - 'app_data:/config'
+      - 'cache_data:/cache'
+      - '/mnt/storage/media:/media'
+      - '/etc/localtime:/etc/localtime:ro'
+    networks:
+      default:
+        aliases:
+          # hostname on "proxy-net"
+          - jellyfin
+    security_opt:
+      - label:disable
+    labels:
+      - "io.containers.autoupdate=registry"
+
+networks:
+  default:
+    external: true
+    name: proxy-net
+
+volumes:
+  app_data:
+    labels:
+      backup: 'true'
+  cache_data:
+    labels:
+      backup: 'true'

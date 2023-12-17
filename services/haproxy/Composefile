@@ -1,0 +1,27 @@
+version: "3"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Containerfile
+    image: localhost/haproxy:latest
+    container_name: haproxy-web-service
+    hostname: haproxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/etc/services.d/haproxy/conf:/var/lib/haproxy"
+      - "/etc/ssl/certs/lego:/etc/ssl/certs"
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
+    command: haproxy -f haproxy.cfg -f backend
+    labels:
+      - "io.containers.autoupdate=local"
+
+networks:
+  default:
+    external: true
+    name: proxy-net
