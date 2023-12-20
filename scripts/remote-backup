@@ -1,0 +1,46 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+    echo " >>> $1"
+}
+
+TIME_STAMP=$(date +%Y-%m-%d_%H-%M-%S)
+SOURCE_BACKUP_DIR="/mnt/storage/backup"
+REMOTE_USER="user"
+REMOTE_SERVER="server"
+REMOTE_BACKUP_DIR="/usb1/backup"
+
+# Connect to remove server, make sure backup directory exists using sftp
+msg "Connecting to remote server..."
+sftp $REMOTE_USER@$REMOTE_SERVER <<EOF
+mkdir $REMOTE_BACKUP_DIR
+cd $REMOTE_BACKUP_DIR
+EOF
+
+# If previous command failed, exit
+if [ $? -ne 0 ]; then
+    msg "Error: Could not connect to remote server."
+    exit 1
+fi
+
+# Backup all files in source backup directory using sftp
+msg "Backing up files..."
+sftp -B 262144 $REMOTE_USER@$REMOTE_SERVER:$REMOTE_BACKUP_DIR <<EOF
+cd $REMOTE_BACKUP_DIR
+put $SOURCE_BACKUP_DIR/* .
+EOF
+
+# If previous command failed, exit
+if [ $? -ne 0 ]; then
+    msg "Error: Could not backup files."
+    exit 1
+fi
+
+
+
+
+

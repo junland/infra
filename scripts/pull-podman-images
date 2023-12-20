@@ -1,0 +1,23 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+  echo " >>> $1"
+}
+
+# Get a list of all Docker images (Repository and tag)
+IMAGES=$(podman images --format "{{.Repository}}:{{.Tag}}")
+
+# Loop through each image and pull the latest version
+for image in $IMAGES; do
+    # Check if the image is not from localhost
+    if [[ $image != *"localhost"* ]]; then
+        msg "Updating image: $image"
+        podman pull $image
+    fi
+done
+
+msg "All images updated successfully"

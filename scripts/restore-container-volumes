@@ -1,0 +1,60 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 John Unland
+
+set -e
+
+msg() {
+    echo " >>> $1"
+}
+
+DATE=$(date +%Y%m%d)
+DATE_TIME=$(date "+%A %B %d %T %Y")
+BACKUP_DIR="/mnt/storage/backup"
+OPT_VOLUMES=""
+IMPORT_DATE="20231217"
+
+# Detect if we are using podman or docker
+if [ -x "$(command -v podman)" ]; then
+    CONTAINER_CMD="podman"
+elif [ -x "$(command -v docker)" ]; then
+    CONTAINER_CMD="docker"
+else
+    msg "Error: podman or docker is not installed."
+    exit 1
+fi
+
+# Make sure BACKUP_DIR is set
+if [ -z "$BACKUP_DIR" ]; then
+    msg "Error: BACKUP_DIR is not set."
+    exit 1
+fi
+
+# Make sure directory is mounted and or exists
+if [ ! -d $BACKUP_DIR ]; then
+    msg "Backup directory does not exist: $BACKUP_DIR"
+    exit 1
+fi
+
+msg "Start $0 script @ $DATE_TIME"
+
+# Loop through all container backup volumes
+for volume in $BACKUP_DIR/podman-vol-*-$IMPORT_DATE.tar.gz; do
+    # Get volume name, remove file extension
+    VOLUME_NAME=$(basename $volume .tar.gz)
+
+    # Remove date from volume name
+    VOLUME_NAME=$(echo $VOLUME_NAME | sed "s/-${IMPORT_DATE}$//")
+
+    # Remove podman-vol- from volume name
+    VOLUME_NAME=$(echo $VOLUME_NAME | sed "s/podman-vol-//")
+
+    # Create volume if it does not exist
+    if [ ! $($CONTAINER_CMD volume ls -q | grep $VOLUME_NAME) ]; then
+        msg "Creating volume: $VOLUME_NAME"
+        $CONTAINER_CMD volume create $VOLUME_NAME
+    fi
+
+    msg "Restoring volume: $VOLUME_NAME"
+    gzip -dc $volume | $CONTAINER_CMD volume import $VOLUME_NAME -
+done

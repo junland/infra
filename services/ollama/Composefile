@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  app:
+    image: docker.io/ollama/ollama:latest
+    container_name: ollama-app-service
+    hostname: 'ollama'
+    restart: unless-stopped
+    volumes:
+      - 'app_data:/root/.ollama'
+    networks:
+      default:
+        aliases:
+          # hostname on "proxy-net"
+          - ollama
+    labels:
+      - "io.containers.autoupdate=registry"
+
+networks:
+  default:
+    external: true
+    name: proxy-net
+
+volumes:
+  app_data:
+    labels:
+      backup: "true"
