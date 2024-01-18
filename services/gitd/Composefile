@@ -24,6 +24,36 @@ services:
     labels:
       - "io.containers.autoupdate=registry"
 
+  runner:
+    build:
+      context: .
+      dockerfile: Containerfile
+    image: localhost/gitd-runner:latest
+    container_name: gitd-runner-app-service
+    restart: unless-stopped
+    environment:
+      USER_UID: 1000
+      USER_GID: 1000
+      GITEA_INSTANCE_URL: http://gitd:3000
+      GITEA_RUNNER_REGISTRATION_TOKEN: 1234567890
+      CONFIG_FILE: /etc/runner.yml
+    depends_on:
+      - app
+    volumes:
+      - runner_data:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      default:
+        aliases:
+          # hostname on "proxy-net"
+          - gitd-runner
+          - forgeje-runner
+          - gitea-runner
+          - git-runner
+    labels:
+      - "io.containers.autoupdate=local"
+
 networks:
   default:
     external: true

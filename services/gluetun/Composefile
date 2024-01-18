@@ -6,12 +6,8 @@ services:
     container_name: gluetun-app-service
     hostname: gluetun
     restart: unless-stopped
-    environment:
-      - VPN_SERVICE_PROVIDER=myprovider
-      - OPENVPN_USER=myusername
-      - OPENVPN_PASSWORD=1234567890
-      - OPENVPN_IPV6=off
-      - SERVER_REGIONS=myregion
+    env_file:
+      - .env
     volumes:
       - app_data:/gluetun
     cap_add:

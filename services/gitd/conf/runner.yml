@@ -1,0 +1,73 @@
+log:
+  # The level of logging, can be trace, debug, info, warn, error, fatal
+  level: info
+
+runner:
+  # Where to store the registration result.
+  file: .runner
+
+  # Execute how many tasks concurrently at the same time.
+  capacity: 4
+
+  # Extra environment variables to run jobs.
+  envs:
+    IS_CONTAINER: true
+
+  # Extra environment variables to run jobs from a file.
+  env_file: ""
+
+  # The timeout for a job to be finished.
+  timeout: 3h
+
+  # Whether skip verifying the TLS certificate of the Forgejo instance.
+  insecure: false
+
+  # The timeout for fetching the job from the Forgejo instance.
+  fetch_timeout: 30s
+
+  # The interval for fetching the job from the Forgejo instance.
+  fetch_interval: 3s
+
+  # The labels of a runner are used to determine which jobs the runner can run, and how to run them.
+  labels:
+    - "alpine-latest:docker://alpine:3"
+    - "ubuntu-latest:docker://ubuntu:latest"
+    - "rocky-latest:docker://rockylinux:9"
+    - "opensuseleap-latest:docker://opensuse/leap:latest"
+    - "opensusetumbleweed-latest:docker://opensuse/tumbleweed:latest"
+
+cache:
+  # Enable cache server to use actions/cache.
+  enabled: true
+
+  # The directory to store the cache data. Default: $HOME/.cache/actcache.
+  dir: ""
+
+  # The host of the cache server. Default: "" (Automatically select a cache server)
+  host: ""
+
+  # The port of the cache server. Default: 0 (random port)
+  port: 0
+
+container:
+  # Specifies the network to which the container will connect.
+  network: "proxy-net"
+
+  # Whether to use privileged mode or not when launching task containers (privileged mode is required for Docker-in-Docker).
+  privileged: false
+
+  # And other options to be used when the container is started (eg, --add-host=my.forgejo.url:host-gateway).
+  options:
+
+  # The parent directory of a job's working directory. Default: /workspace
+  workdir_parent:
+
+  # Volumes (including bind mounts) can be mounted to containers. Glob syntax is supported, see https://github.com/gobwas/glob
+  valid_volumes: []
+
+  # Overrides the docker client host with the specified one. Default: act_runner
+  docker_host: ""
+
+host:
+  # The parent directory of a job's working directory. Default: $HOME/.forgejo/runner
+  workdir_parent:
