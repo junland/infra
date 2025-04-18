@@ -5,18 +5,16 @@ epel_repo_gpg_key_url: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distributio
 epel_repo_file_path: "/etc/yum.repos.d/epel.repo"
 
 docker_enabled: false
-docker_repo_url: "https://download.docker.com/linux/centos/docker-ce.repo"
-docker_repo_gpg_key_url: "https://download.docker.com/linux/centos/gpg"
+docker_repo_url: "https://download.docker.com/linux/rhel/docker-ce.repo"
+docker_repo_gpg_key_url: "https://download.docker.com/linux/rhel/gpg"
 docker_repo_file_path: "/etc/yum.repos.d/docker-ce.repo"
 
 zfs_enabled: false
-zfs_repo_rpm_url: "https://zfsonlinux.org/epel/zfs-release-2-2.el9.noarch.rpm"
+zfs_repo_rpm_url: "https://zfsonlinux.org/epel/zfs-release-2-3.{{ ansible_distribution_major_version }}.noarch.rpm"
 zfs_repo_file_path: "/etc/yum.repos.d/zfs.repo"
 
 sshd_port: "22"
-
 docker_testing: false
-
 nfs_enabled: false
 samba_enabled: false
 

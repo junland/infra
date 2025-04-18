@@ -21,5 +21,3 @@ variable "primary_hosts" {
   })
   description = "Hosts within the primary zone."
 }
-
-
