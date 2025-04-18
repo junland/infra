@@ -8,6 +8,11 @@ variable "cf_api_token" {
   description = "API token generated from Cloudflare."
 }
 
+variable "cf_account_id" {
+  type        = string
+  description = "Cloudflare account ID."
+}
+
 variable "primary_zone_name" {
   type        = string
   description = "Name of the primary zone."
