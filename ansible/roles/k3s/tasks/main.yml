@@ -1,0 +1,37 @@
+---
+# tasks file for roles/k3s
+
+- name: Download k3s installation script
+  get_url:
+      url: https://get.k3s.io
+      dest: /tmp/k3s_install.sh
+      mode: '0755'
+
+- name: Install k3s server
+  shell: |
+      export INSTALL_K3S_EXEC="{{ k3s_install_exec }}"
+      /tmp/k3s_install.sh server --disable traefik --disable servicelb
+  args:
+      creates: /usr/local/bin/k3s
+
+- name: Wait for k3s server to be ready
+  command: kubectl get nodes
+  register: server_ready
+  retries: 10
+  delay: 10
+  until: server_ready.rc == 0
+
+- name: Install k3s agent
+  shell: |
+      export INSTALL_K3S_EXEC="{{ k3s_install_exec }}"
+      /tmp/k3s_install.sh agent --disable traefik --disable servicelb
+  args:
+      creates: /usr/local/bin/k3s-agent
+
+- name: Verify k3s installation
+  command: k3s --version
+  register: k3s_version
+  changed_when: false
+
+- debug:
+      msg: "Installed k3s version: {{ k3s_version.stdout }}"
