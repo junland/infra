@@ -18,14 +18,11 @@ internal_servers:
   hosts:
     192.168.1.42:
       docker_enabled: true
-      nfs_enabled: true 
+      nfs_enabled: true
       samba_enabled: true
       prometheus_exporter_enabled: true
-      promtail_enabled: true
       prometheus_exporter_ver: "1.3.1"
       prometheus_exporter_bin_arch: "amd64"
-      promtail_ver: "2.6.0"
-      promtail_bin_arch: "amd64"
 ```
 
 2. Edit the playbook file add roles as needed.
@@ -53,7 +50,6 @@ ansible-playbook -K -u john --inventory-file ./inventory.yml run.yml
 
 ## Software Included
 
-* [Promtail](https://github.com/grafana/loki)
 * [Loki](https://github.com/grafana/loki)
 * [Grafana](https://github.com/grafana/grafana)
 * [Prometheus](https://github.com/prometheus)
