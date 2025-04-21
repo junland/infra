@@ -6,4 +6,4 @@
 - hosts: internal_servers
   become: yes
   roles:
-    - role: base
+    - role: base-server

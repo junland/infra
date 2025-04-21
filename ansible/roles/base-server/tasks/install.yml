@@ -1,21 +1,21 @@
 ---
 - name: Create yum.repos.d to dnf.repos.d symlink
   file:
-    src: "/etc/yum.repos.d"
-    dest: "/etc/dnf.repos.d"
-    state: link
-    force: yes
+      src: "/etc/yum.repos.d"
+      dest: "/etc/dnf.repos.d"
+      state: link
+      force: yes
   when:
-    - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
 
 - name: Create yum.repos.d to repos.d symlink
   file:
-    src: "/etc/yum.repos.d"
-    dest: "/etc/repos.d"
-    state: link
-    force: yes
+      src: "/etc/yum.repos.d"
+      dest: "/etc/repos.d"
+      state: link
+      force: yes
   when:
-    - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
 
 - name: Check if EPEL repo is already configured
   stat:
@@ -109,17 +109,17 @@
 
 - name: Enable service and ensure it is not masked
   systemd:
-    name: docker
-    enabled: yes
-    masked: no
+      name: docker
+      enabled: yes
+      masked: no
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
       - docker_enabled|bool
 
 - name: Ensure Docker service is running
   systemd:
-    state: started
-    name: docker
+      state: started
+      name: docker
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
       - docker_enabled|bool

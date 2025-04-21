@@ -1,18 +1,39 @@
 ---
 # tasks file for roles/k3s
 
+- name: Download helm installation script
+  get_url:
+      url: https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+      dest: /tmp/get_helm.sh
+      mode: "0755"
+
+- name: Install helm
+  shell: /tmp/get_helm.sh
+  args:
+      creates: /usr/local/bin/helm
+  when: k3s_install_exec == "server"
+
+- name: Generate helm bash completion script
+  command: helm completion bash > /etc/bash_completion.d/helm
+  args:
+      creates: /etc/bash_completion.d/helm
+  when: k3s_install_exec == "server"
+
 - name: Download k3s installation script
   get_url:
       url: https://get.k3s.io
       dest: /tmp/k3s_install.sh
-      mode: '0755'
+      mode: "0755"
 
 - name: Install k3s server
   shell: |
       export INSTALL_K3S_EXEC="{{ k3s_install_exec }}"
+      export K3S_TOKEN="{{ k3s_install_token }}"
+      export K3S_URL="{{ k3s_install_url }}"
       /tmp/k3s_install.sh server --disable traefik --disable servicelb
   args:
       creates: /usr/local/bin/k3s
+  when: k3s_install_exec == "server"
 
 - name: Wait for k3s server to be ready
   command: kubectl get nodes
@@ -20,13 +41,17 @@
   retries: 10
   delay: 10
   until: server_ready.rc == 0
+  when: k3s_init_cluster|bool
 
 - name: Install k3s agent
   shell: |
       export INSTALL_K3S_EXEC="{{ k3s_install_exec }}"
+      export K3S_TOKEN="{{ k3s_install_token }}"
+      export K3S_URL="{{ k3s_install_url }}"
       /tmp/k3s_install.sh agent --disable traefik --disable servicelb
   args:
       creates: /usr/local/bin/k3s-agent
+  when: k3s_install_exec == "agent"
 
 - name: Verify k3s installation
   command: k3s --version

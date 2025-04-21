@@ -1,3 +1,12 @@
 ---
 # defaults file for roles/k3s
 k3s_install_exec: "server"
+
+# k3s_init_cluster is used to specify if the server is the initial cluster node.
+k3s_init_cluster: null
+
+# k3s_install_url is used to specify the URL for the k3s installation script.
+# It can be set to a specific URL or left as 'localhost' to use the default.
+k3s_install_url: localhost
+
+k3s_install_token: "ThisIsMyK3sToken"
