@@ -6,5 +6,5 @@
 - hosts: internal_servers
   become: yes
   roles:
-    - role: base-server
+    #- role: base-server
     - role: k3s

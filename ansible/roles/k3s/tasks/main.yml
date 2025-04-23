@@ -14,7 +14,7 @@
   when: k3s_install_exec == "server"
 
 - name: Generate helm bash completion script
-  command: helm completion bash > /etc/bash_completion.d/helm
+  shell: helm completion bash > /etc/bash_completion.d/helm
   args:
       creates: /etc/bash_completion.d/helm
   when: k3s_install_exec == "server"
@@ -27,10 +27,9 @@
 
 - name: Install k3s server
   shell: |
-      export INSTALL_K3S_EXEC="{{ k3s_install_exec }}"
+      export INSTALL_K3S_EXEC="{{ k3s_install_exec }} --disable traefik --disable servicelb"
       export K3S_TOKEN="{{ k3s_install_token }}"
-      export K3S_URL="{{ k3s_install_url }}"
-      /tmp/k3s_install.sh server --disable traefik --disable servicelb
+      /tmp/k3s_install.sh
   args:
       creates: /usr/local/bin/k3s
   when: k3s_install_exec == "server"
@@ -45,16 +44,16 @@
 
 - name: Install k3s agent
   shell: |
-      export INSTALL_K3S_EXEC="{{ k3s_install_exec }}"
+      export INSTALL_K3S_EXEC="{{ k3s_install_exec }} --disable traefik --disable servicelb"
       export K3S_TOKEN="{{ k3s_install_token }}"
       export K3S_URL="{{ k3s_install_url }}"
-      /tmp/k3s_install.sh agent --disable traefik --disable servicelb
+      /tmp/k3s_install.sh
   args:
-      creates: /usr/local/bin/k3s-agent
+      creates: /usr/local/bin/k3s
   when: k3s_install_exec == "agent"
 
 - name: Verify k3s installation
-  command: k3s --version
+  shell: k3s --version | tr '\n' ' '
   register: k3s_version
   changed_when: false
 
