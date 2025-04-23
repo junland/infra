@@ -1,4 +1,11 @@
 ---
+# Run a full upgrade
+- name: Upgrade all packages to latest version
+  action: "{{ ansible_pkg_mgr }}"
+  args:
+      name: "*"
+      state: latest
+
 - name: Create yum.repos.d to dnf.repos.d symlink
   file:
       src: "/etc/yum.repos.d"
@@ -32,6 +39,20 @@
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
       - docker_enabled|bool
 
+- name: Display EPEL repo URL
+  debug:
+      msg: "EPEL ( {{ ansible_pkg_mgr }} ) repo URL: {{ epel_repo_rpm_url }}"
+  when:
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - not epel_repofile_result.stat.exists
+
+- name: Import EPEL GPG key
+  rpm_key:
+      key: "{{ epel_repo_gpg_key_url }}"
+      state: present
+  when:
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+
 - name: Install EPEL repo
   action: "{{ ansible_pkg_mgr }}"
   args:
@@ -39,15 +60,8 @@
       state: present
   register: result
   until: result is succeeded
-  retries: 5
+  retries: 3
   delay: 10
-  when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
-
-- name: Import EPEL GPG key
-  rpm_key:
-      key: "{{ epel_repo_gpg_key_url }}"
-      state: present
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
 

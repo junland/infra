@@ -7,7 +7,7 @@
       state: directory
       mode: "0700"
 
-- name: Update and upgrade system
+- name: Refresh system repos
   action: "{{ ansible_pkg_mgr }}"
   args:
       update_only: yes

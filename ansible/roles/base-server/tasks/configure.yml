@@ -212,6 +212,8 @@
       - "ipv6"
       - "tun"
       - "xt_conntrack"
+  when:
+      - ansible_os_family in ['Alpine']
 
 - name: Append zfs module to load automatically in /etc/modules
   lineinfile:
@@ -222,6 +224,7 @@
       - "zfs"
   when:
       - zfs_enabled|bool
+      - ansible_os_family in ['Alpine']
 
 - name: Add zfs-mod.conf to /etc/modprobe.d
   copy:
