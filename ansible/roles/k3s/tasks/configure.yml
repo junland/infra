@@ -3,33 +3,33 @@
 
 - name: Create kubctl configuration directory
   file:
-    path: /root/.kube
-    state: directory
-    mode: "0755"
+      path: /root/.kube
+      state: directory
+      mode: "0755"
   when: k3s_install_exec == "server"
 
 - name: Copy kubectl configuration
   copy:
-    src: /etc/rancher/k3s/k3s.yaml
-    dest: /root/.kube/config
-    mode: "0644"
-    remote_src: true
+      src: /etc/rancher/k3s/k3s.yaml
+      dest: /root/.kube/config
+      mode: "0644"
+      remote_src: true
   when: k3s_install_exec == "server"
 
 - name: Generate kubectl bash completion script
   shell: kubectl completion bash > /etc/bash_completion.d/kubectl
   args:
-    creates: /etc/bash_completion.d/kubectl
+      creates: /etc/bash_completion.d/kubectl
   when: k3s_install_exec == "server"
 
 - name: Install helm
   shell: /tmp/get_helm.sh
   args:
-    creates: /usr/local/bin/helm
+      creates: /usr/local/bin/helm
   when: k3s_install_exec == "server"
 
 - name: Generate helm bash completion script
   shell: helm completion bash > /etc/bash_completion.d/helm
   args:
-    creates: /etc/bash_completion.d/helm
+      creates: /etc/bash_completion.d/helm
   when: k3s_install_exec == "server"
