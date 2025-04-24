@@ -1,0 +1,56 @@
+---
+# install tasks file for roles/k3s
+
+- name: Download helm installation script
+  get_url:
+    url: https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+    dest: /tmp/get_helm.sh
+    mode: "0755"
+
+
+
+- name: Download k3s installation script
+  get_url:
+    url: https://get.k3s.io
+    dest: /tmp/k3s_install.sh
+    mode: "0755"
+
+- name: Install k3s server
+  command: /tmp/k3s_install.sh
+  environment:
+    INSTALL_K3S_EXEC: "{{ k3s_install_exec }} --disable traefik --disable servicelb"
+    K3S_TOKEN: "{{ k3s_install_token }}"
+  args:
+    creates: /usr/local/bin/k3s
+  when: k3s_install_exec == "server"
+
+- name: Wait for node-token
+  ansible.builtin.wait_for:
+    path: /var/lib/rancher/k3s/server/node-token
+  when: k3s_install_exec == "server"
+
+- name: Wait for k3s server to be ready
+  command: kubectl get nodes
+  register: server_ready
+  retries: 10
+  delay: 10
+  until: server_ready.rc == 0
+  when: k3s_install_exec == "server"
+
+- name: Install k3s agent
+  command: /tmp/k3s_install.sh
+  environment:
+    INSTALL_K3S_EXEC: "{{ k3s_install_exec }} --node-label node-role.kubernetes.io/worker=true"
+    K3S_TOKEN: "{{ k3s_install_token }}"
+    K3S_URL: "{{ k3s_install_url }}"
+  args:
+    creates: /usr/local/bin/k3s
+  when: k3s_install_exec == "agent"
+
+- name: Verify k3s installation
+  shell: k3s --version | tr '\n' ' '
+  register: k3s_version
+  changed_when: false
+
+- debug:
+    msg: "Installed k3s version: {{ k3s_version.stdout }}"
