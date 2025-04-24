@@ -1,6 +1,13 @@
 ---
 # configure tasks file for roles/k3s
 
+- name: Download helm installation script
+  get_url:
+      url: https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+      dest: /tmp/get_helm.sh
+      mode: "0755"
+  when: k3s_install_exec == "server"
+
 - name: Create kubctl configuration directory
   file:
       path: /root/.kube

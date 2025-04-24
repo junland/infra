@@ -1,12 +1,6 @@
 ---
 # install tasks file for roles/k3s
 
-- name: Download helm installation script
-  get_url:
-      url: https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
-      dest: /tmp/get_helm.sh
-      mode: "0755"
-
 - name: Download k3s installation script
   get_url:
       url: https://get.k3s.io
@@ -27,6 +21,35 @@
       path: /var/lib/rancher/k3s/server/node-token
   when: k3s_install_exec == "server"
 
+- name: Register node-token file access mode
+  ansible.builtin.stat:
+      path: /var/lib/rancher/k3s/server
+  register: p
+  when: k3s_install_exec == "server"
+
+- name: Change file access node-token
+  ansible.builtin.file:
+      path: /var/lib/rancher/k3s/server
+      mode: g+rx,o+rx
+  when: k3s_install_exec == "server"
+
+- name: Read node-token from master
+  ansible.builtin.slurp:
+      src: /var/lib/rancher/k3s/server/node-token
+  register: node_token
+  when: k3s_install_exec == "server"
+
+- name: Store Master node-token
+  ansible.builtin.set_fact:
+      token: "{{ node_token.content | b64decode | regex_replace('\n', '') }}"
+  when: k3s_install_exec == "server"
+
+- name: Restore node-token file access
+  ansible.builtin.file:
+      path: /var/lib/rancher/k3s/server
+      mode: "{{ p.stat.mode }}"
+  when: k3s_install_exec == "server"
+
 - name: Wait for k3s server to be ready
   command: kubectl get nodes
   register: server_ready
@@ -39,11 +62,13 @@
   command: /tmp/k3s_install.sh
   environment:
       INSTALL_K3S_EXEC: "{{ k3s_install_exec }} --node-label node-role.kubernetes.io/worker=true"
-      K3S_TOKEN: "{{ k3s_install_token }}"
+      K3S_TOKEN: "{{ hostvars[groups['internal_servers'][0]]['token'] }}"
       K3S_URL: "{{ k3s_install_url }}"
   args:
       creates: /usr/local/bin/k3s
-  when: k3s_install_exec == "agent"
+  when:
+      - k3s_install_exec == "agent"
+      - token is not none or token != ""
 
 - name: Verify k3s installation
   shell: k3s --version | tr '\n' ' '
