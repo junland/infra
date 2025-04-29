@@ -7,11 +7,15 @@
       dest: /tmp/k3s_install.sh
       mode: "0755"
 
+- name: Construct tls-san arguments
+  set_fact:
+      k3s_tls_san_args: "--tls-san {{ k3s_tls_san_list | default([]) | join(' --tls-san ') }}"
+  when: k3s_tls_san_list is defined and k3s_tls_san_list | length > 0
+
 - name: Install k3s server
   command: /tmp/k3s_install.sh
   environment:
-      INSTALL_K3S_EXEC: "{{ k3s_install_exec }} --disable traefik --disable servicelb"
-      K3S_TOKEN: "{{ k3s_install_token }}"
+      INSTALL_K3S_EXEC: "{{ k3s_install_exec }} --disable traefik --disable servicelb {{ k3s_tls_san_args | default('') }}"
   args:
       creates: /usr/local/bin/k3s
   when: k3s_install_exec == "server"
@@ -61,7 +65,7 @@
 - name: Install k3s agent
   command: /tmp/k3s_install.sh
   environment:
-      INSTALL_K3S_EXEC: "{{ k3s_install_exec }} --node-label node-role.kubernetes.io/worker=true"
+      INSTALL_K3S_EXEC: "{{ k3s_install_exec }} --debug --node-label node-role.kubernetes.io/worker=true"
       K3S_TOKEN: "{{ hostvars[groups['internal_servers'][0]]['token'] }}"
       K3S_URL: "https://{{ k3s_install_url_host }}:6443"
   args:
