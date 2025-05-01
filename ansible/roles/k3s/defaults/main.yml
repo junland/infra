@@ -7,5 +7,3 @@ k3s_init_cluster: null
 
 # k3s_install_url_host is used to specify the host for the k3s installation URL.
 k3s_install_url_host: localhost
-
-k3s_install_token: "ThisIsMyK3sToken"

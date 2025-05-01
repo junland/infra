@@ -40,3 +40,9 @@
   args:
       creates: /etc/bash_completion.d/helm
   when: k3s_install_exec == "server"
+
+# Label agent nodes with the agent role if k3s_install_exec is "agent"
+- name: Label agent nodes
+  command: kubectl label node {{ item }} node-role.kubernetes.io/agent=true --overwrite
+  loop: "{{ groups['internal_servers'] | difference([inventory_hostname]) }}"
+  when: k3s_install_exec == "server"
