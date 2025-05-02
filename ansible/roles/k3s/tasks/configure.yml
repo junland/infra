@@ -46,3 +46,56 @@
   command: kubectl label node {{ item }} node-role.kubernetes.io/agent=true --overwrite
   loop: "{{ groups['internal_servers'] | difference([inventory_hostname]) }}"
   when: k3s_install_exec == "server"
+
+# Add helm repositories using the helm command line from a list of repos.
+- name: Add helm repositories
+  command: helm repo add {{ item.name }} {{ item.url }}
+  loop:
+      - { name: "haproxy", url: "https://haproxytech.github.io/helm-charts" }
+      - { name: "metallb", url: "https://metallb.github.io/metallb" }
+  when: k3s_install_exec == "server"
+
+# Check that metallb is not already installed
+- name: Check if metallb is already installed
+  command: helm list -n metallb-system
+  register: metallb_check
+  failed_when: false
+  changed_when: false
+  when:
+      - k3s_install_exec == "server"
+      - k3s_metallb_ip_pool is defined and k3s_metallb_ip_pool != ""
+      - k3s_metallb_ip is defined and k3s_metallb_ip != ""
+
+# Install metallb using helm if it is not already installed
+- name: Install metallb using helm
+  command: helm install --create-namespace -n metallb-system metallb metallb/metallb
+  when:
+      - k3s_install_exec == "server"
+      - k3s_metallb_ip_pool is defined and k3s_metallb_ip_pool != ""
+      - k3s_metallb_ip is defined and k3s_metallb_ip != ""
+      - metallb_check.failed or metallb_check.stdout == ""
+
+# Output k3s_metallb_ip_pool
+- name: Output k3s_metallb_ip_pool
+  debug:
+      msg: "k3s_metallb_ip_pool: {{ k3s_metallb_ip_pool }}"
+  when:
+      - k3s_install_exec == "server"
+      - k3s_metallb_ip_pool is defined and k3s_metallb_ip_pool != ""
+
+# Put metallb IP pool with jinja2 template of metallb.j2
+- name: Put metallb IP pool with jinja2 template
+  template:
+      src: metallb.j2
+      dest: /tmp/metallb-config.yaml
+      mode: "0644"
+  when:
+      - k3s_install_exec == "server"
+      - k3s_metallb_ip_pool is defined and k3s_metallb_ip_pool != ""
+
+# Apply metallb IP pool configuration
+- name: Apply metallb IP pool configuration
+  command: kubectl apply -f /tmp/metallb-config.yaml
+  when:
+      - k3s_install_exec == "server"
+      - k3s_metallb_ip_pool is defined and k3s_metallb_ip_pool != ""
