@@ -51,47 +51,40 @@
 - name: Add helm repositories
   command: helm repo add {{ item.name }} {{ item.url }}
   loop:
-      - { name: "haproxy", url: "https://haproxytech.github.io/helm-charts" }
+      - {
+            name: "haproxytech",
+            url: "https://haproxytech.github.io/helm-charts",
+        }
       - { name: "metallb", url: "https://metallb.github.io/metallb" }
   when: k3s_install_exec == "server"
 
 # Check that metallb is not already installed
 - name: Check if metallb is already installed
-  command: helm list -n metallb-system
+  command: helm status -n metallb-system metallb
   register: metallb_check
   failed_when: false
   changed_when: false
   when:
       - k3s_install_exec == "server"
       - k3s_metallb_ip_pool is defined and k3s_metallb_ip_pool != ""
-      - k3s_metallb_ip is defined and k3s_metallb_ip != ""
 
-# Install metallb using helm if it is not already installed
-- name: Install metallb using helm
-  command: helm install --create-namespace -n metallb-system metallb metallb/metallb
-  when:
-      - k3s_install_exec == "server"
-      - k3s_metallb_ip_pool is defined and k3s_metallb_ip_pool != ""
-      - k3s_metallb_ip is defined and k3s_metallb_ip != ""
-      - metallb_check.failed or metallb_check.stdout == ""
-
-# Output k3s_metallb_ip_pool
-- name: Output k3s_metallb_ip_pool
-  debug:
-      msg: "k3s_metallb_ip_pool: {{ k3s_metallb_ip_pool }}"
-  when:
-      - k3s_install_exec == "server"
-      - k3s_metallb_ip_pool is defined and k3s_metallb_ip_pool != ""
-
-# Put metallb IP pool with jinja2 template of metallb.j2
-- name: Put metallb IP pool with jinja2 template
+# Put metallb kube config with jinja2 template of metallb.j2
+- name: Put metallb kube config with jinja2 template
   template:
-      src: metallb.j2
+      src: metallb-config.j2
       dest: /tmp/metallb-config.yaml
       mode: "0644"
   when:
       - k3s_install_exec == "server"
+      - metallb_check.failed or metallb_check.stdout == ""
+
+# Install metallb using helm if it is not already installed
+- name: Install metallb using helm
+  command: helm install --create-namespace --wait --hide-notes -n metallb-system metallb metallb/metallb
+  when:
+      - k3s_install_exec == "server"
       - k3s_metallb_ip_pool is defined and k3s_metallb_ip_pool != ""
+      - metallb_check.failed or metallb_check.stdout == ""
 
 # Apply metallb IP pool configuration
 - name: Apply metallb IP pool configuration
@@ -99,3 +92,22 @@
   when:
       - k3s_install_exec == "server"
       - k3s_metallb_ip_pool is defined and k3s_metallb_ip_pool != ""
+      - metallb_check.failed or metallb_check.stdout == ""
+
+# Check that haproxy is not already installed
+- name: Check if haproxy is already installed
+  command: helm status -n haproxy-ingress haproxy
+  register: haproxy_check
+  failed_when: false
+  changed_when: false
+  when:
+      - k3s_install_exec == "server"
+      - k3s_metallb_ip is defined and k3s_metallb_ip != ""
+
+# Install haproxy using helm if it is not already installed
+- name: Install haproxy using helm
+  command: helm install --create-namespace --wait --hide-notes -n haproxy-ingress haproxy haproxytech/kubernetes-ingress --set {{ k3s_haproxy_values }}
+  when:
+      - k3s_install_exec == "server"
+      - k3s_metallb_ip is defined and k3s_metallb_ip != ""
+      - haproxy_check.failed or haproxy_check.stdout == ""
