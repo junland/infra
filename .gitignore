@@ -62,3 +62,8 @@ override.tf.json
 .vscode/*
 .history/
 *.vsix
+
+# local vbox scripts
+vbox*.sh
+vbox*.ps1
+vbox*.bat
