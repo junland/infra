@@ -1,12 +1,4 @@
 terraform {
-
-  cloud {
-    organization = "junland"
-    workspaces {
-      name = "networking"
-    }
-  }
-
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"

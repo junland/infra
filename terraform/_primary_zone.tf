@@ -30,12 +30,22 @@ resource "cloudflare_dns_record" "host" {
 
 # Create CNAME records for services within the primary zone.
 resource "cloudflare_dns_record" "service" {
-  count   = length(var.primary_hosts)
-  name    = var.primary_hosts[count.index].svcs
+  for_each = {
+    for pair in flatten([
+      for host in var.primary_hosts : [
+        for svc in host.svcs : {
+          host_name = host.name
+          svc_name  = svc
+        }
+      ]
+    ]) : "${pair.host_name}-${pair.svc_name}" => pair
+  }
+
+  name    = each.value.svc_name
   proxied = false
   ttl     = 3600
   type    = "CNAME"
-  content = var.primary_hosts[count.index].name
+  content = each.value.host_name
   zone_id = cloudflare_zone.primary.id
 }
 
