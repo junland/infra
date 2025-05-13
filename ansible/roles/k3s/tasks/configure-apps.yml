@@ -1,0 +1,18 @@
+# Apply test-app.yml to the cluster
+
+# Upload test-app.yml to the cluster
+- name: Upload test-app.yml to the cluster
+  ansible.builtin.copy:
+    src: "test-blue-green.yml"
+    dest: /tmp/test-app.yml
+    owner: root
+    group: root
+    force: true
+  when:
+    - k3s_install_exec == "server"
+
+# Apply test-app.yml to the cluster
+- name: Apply test-app.yml to the cluster
+  command: kubectl apply -f /tmp/test-app.yml
+  when:
+    - k3s_install_exec == "server"
