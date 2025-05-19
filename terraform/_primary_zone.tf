@@ -14,7 +14,7 @@ resource "cloudflare_dns_record" "primary" {
   zone_id = cloudflare_zone.primary.id
   proxied = false
   type    = "CNAME"
-  ttl     = 3600
+  ttl     = 300
 }
 
 # Create A records for hosts within the primary zone.
@@ -22,7 +22,7 @@ resource "cloudflare_dns_record" "host" {
   count   = length(var.primary_hosts)
   name    = var.primary_hosts[count.index].name
   proxied = false
-  ttl     = 3600
+  ttl     = 300
   type    = "A"
   content = var.primary_hosts[count.index].ip
   zone_id = cloudflare_zone.primary.id
@@ -43,13 +43,10 @@ resource "cloudflare_dns_record" "service" {
 
   name    = each.value.svc_name
   proxied = false
-  ttl     = 3600
+  ttl     = 300
   type    = "CNAME"
   content = each.value.host_name
   zone_id = cloudflare_zone.primary.id
 }
-
-# Get account id
-
 
 
