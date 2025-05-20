@@ -4,22 +4,23 @@
 # Ensure inventory is set to internal_servers
 - name: Ensure inventory is set to internal_servers
   ansible.builtin.assert:
-    that:
-      - "'internal_servers' in groups"
-    fail_msg: "The 'internal_servers' group is not defined in the inventory."
+      that:
+          - "'internal_servers' in groups"
+      fail_msg: "The 'internal_servers' group is not defined in the inventory."
 
 - name: Create ansible temp directory if it does not exist
   ansible.builtin.file:
-    path: ~/.ansible/tmp
-    state: directory
-    mode: "0700"
+      path: ~/.ansible/tmp
+      state: directory
+      mode: "0700"
 
 - name: Refresh system repos
   action: "{{ ansible_pkg_mgr }}"
   args:
-    update_only: yes
-    update_cache: yes
+      update_only: yes
+      update_cache: yes
 
 - import_tasks: install.yml
 - import_tasks: configure.yml
 - import_tasks: configure-apps.yml
+- import_tasks: configure-jenkins.yml

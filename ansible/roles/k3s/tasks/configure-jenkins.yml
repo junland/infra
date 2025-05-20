@@ -1,0 +1,25 @@
+# Add Jenkins helm repository
+- name: Add Jenkins helm repository
+  command: helm repo add jenkins https://charts.jenkins.io
+  register: jenkins_repo_add
+  failed_when: false
+  changed_when: false
+  when:
+      - k3s_install_exec == "server"
+
+# Check if Jenkins is already installed
+- name: Check if Jenkins is already installed
+  command: helm status -n jenkins jenkins
+  register: jenkins_check
+  failed_when: false
+  changed_when: false
+  when:
+      - k3s_install_exec == "server"
+      - jenkins_repo_add.rc == 0
+
+# Install Jenkins using helm if it is not already installed
+- name: Install Jenkins using helm
+  command: helm install --create-namespace --wait --hide-notes -n jenkins jenkins jenkins/jenkins
+  when:
+      - k3s_install_exec == "server"
+      - jenkins_check.rc != 0

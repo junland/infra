@@ -1,42 +1,3 @@
-# APP Deployment with for green
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-    name: test-app-green
-    labels:
-        app: test-app
-        color: green
-spec:
-    replicas: 3
-    selector:
-        matchLabels:
-            color: green
-    template:
-        metadata:
-            labels:
-                color: green
-        spec:
-            affinity:
-                nodeAffinity:
-                    requiredDuringSchedulingIgnoredDuringExecution:
-                        nodeSelectorTerms:
-                            - matchExpressions:
-                                  - key: kubernetes.io/os
-                                    operator: In
-                                    values:
-                                        - linux
-            containers:
-                - name: test-green
-                  image: docker.io/kirbah/blue-green:green
-                  ports:
-                      - containerPort: 8080
-                  resources:
-                      requests:
-                          cpu: 100m
-                          memory: 128Mi
-                      limits:
-                          cpu: 200m
-                          memory: 256Mi
 ---
 # APP Deployment with for blue
 apiVersion: apps/v1
@@ -54,6 +15,7 @@ spec:
     template:
         metadata:
             labels:
+                app: test-app
                 color: blue
         spec:
             # Set affinity to ensure that the blue and green pods are not scheduled on the same node
@@ -95,27 +57,11 @@ spec:
         app: test-app
         color: blue
 ---
-# Service for green
-apiVersion: v1
-kind: Service
-metadata:
-    name: svc-green
-    labels:
-        color: green
-spec:
-    ports:
-        - port: 80
-          protocol: TCP
-          targetPort: 8080
-    selector:
-        app: test-app
-        color: green
----
-# Service ingress for both blue and green
+# Service ingress for blue
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-    name: lb-ingress-blue-green
+    name: lb-ingress-blue
 spec:
     ingressClassName: haproxy
     # Rules to route blue.local to blue service
@@ -128,15 +74,5 @@ spec:
                     backend:
                         service:
                             name: svc-blue
-                            port:
-                                number: 80
-        - host: green.local
-          http:
-              paths:
-                  - path: /
-                    pathType: Prefix
-                    backend:
-                        service:
-                            name: svc-green
                             port:
                                 number: 80
