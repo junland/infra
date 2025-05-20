@@ -38,15 +38,27 @@ resource "cloudflare_dns_record" "service" {
           svc_name  = svc
         }
       ]
-    ]) : "${pair.host_name}-${pair.svc_name}" => pair
+    ]) : "${pair.svc_name}.${pair.host_name}" => pair
   }
 
-  name    = each.value.svc_name
+  name    = "${each.value.svc_name}.${each.value.host_name}"
   proxied = false
   ttl     = 300
   type    = "CNAME"
-  content = each.value.host_name
+  content = "${each.value.host_name}.${var.primary_zone_name}"
   zone_id = cloudflare_zone.primary.id
 }
 
+# Create wildcard CNAME records for hosts within the primary zone.
+resource "cloudflare_dns_record" "wildcard" {
+  for_each = {
+    for host in var.primary_hosts : host.name => host if host.wildcard
+  }
 
+  name    = "*.${each.key}"
+  proxied = false
+  ttl     = 300
+  type    = "CNAME"
+  content = "${each.key}.${var.primary_zone_name}"
+  zone_id = cloudflare_zone.primary.id
+}

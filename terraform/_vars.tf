@@ -20,9 +20,10 @@ variable "primary_zone_name" {
 
 variable "primary_hosts" {
   type = list(object({
-    name = string
-    ip   = string
-    svcs = list(string)
+    name     = string
+    ip       = string
+    svcs     = list(string)
+    wildcard = optional(bool, false)
   }))
   description = "Hosts within the primary zone."
 }
