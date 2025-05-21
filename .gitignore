@@ -67,3 +67,12 @@ override.tf.json
 vbox*.sh
 vbox*.ps1
 vbox*.bat
+
+# certs
+*.crt
+*.key
+*.pem
+*.pfx
+*.p12
+*.p7b
+*.p7c
