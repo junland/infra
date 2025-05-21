@@ -17,9 +17,20 @@
       - k3s_install_exec == "server"
       - jenkins_repo_add.rc == 0
 
+# Jenkins values template file
+- name: Put Jenkins kube config with jinja2 template
+  template:
+      src: jenkins-values.j2
+      dest: /tmp/jenkins-values-config.yaml
+      mode: "0644"
+      force: true
+  when:
+      - k3s_install_exec == "server"
+      - jenkins_check.rc != 0
+
 # Install Jenkins using helm if it is not already installed
 - name: Install Jenkins using helm
-  command: helm install --create-namespace --wait --hide-notes -n jenkins jenkins jenkins/jenkins
+  command: helm install --create-namespace --wait --hide-notes -n jenkins jenkins jenkins/jenkins --values /tmp/jenkins-values-config.yaml
   when:
       - k3s_install_exec == "server"
       - jenkins_check.rc != 0

@@ -2,6 +2,6 @@
 controller:
   ingress:
     enabled: true
-    hostName: jenkins.kube.jlab.space
+    hostName: jenkins.{{ k3s_domain }}
     annotations:
       kubernetes.io/ingress.class: haproxy
