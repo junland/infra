@@ -22,5 +22,6 @@
 
 - import_tasks: install.yml
 - import_tasks: configure.yml
+- import_tasks: configure-certs.yml
 - import_tasks: configure-apps.yml
 - import_tasks: configure-jenkins.yml
