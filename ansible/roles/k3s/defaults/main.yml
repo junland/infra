@@ -15,3 +15,5 @@ k3s_haproxy_values: "controller.service.type=LoadBalancer,controller.service.loa
 k3s_install_version: "v1.32.4+k3s1"
 
 k3s_domain: "kube.local"
+
+k3s_domain_tls_secret_name: "haproxy-kubernetes-ingress-domain-cert"

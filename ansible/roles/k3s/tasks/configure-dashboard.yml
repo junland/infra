@@ -1,0 +1,51 @@
+# Add kubernetes dashboard helm repository
+- name: Add Kubernetes dashboard helm repository
+  command: helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+  register: dashboard_repo_add
+  failed_when: false
+  changed_when: false
+  when:
+      - k3s_install_exec == "server"
+
+# Check if Kubernetes dashboard is already installed
+- name: Check if Kubernetes dashboard is already installed
+  command: helm status -n kubernetes-dashboard kubernetes-dashboard
+  register: dashboard_check
+  failed_when: false
+  changed_when: false
+  when:
+      - k3s_install_exec == "server"
+      - dashboard_repo_add.rc == 0
+
+# Deploy Kubernetes dashboard using helm
+- name: Deploy Kubernetes dashboard using helm
+  command: helm install --create-namespace --atomic --hide-notes -n kubernetes-dashboard kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard
+  when:
+      - k3s_install_exec == "server"
+      - dashboard_repo_add.rc == 0
+      - dashboard_check.rc != 0
+
+# Upload and apply dashboard admin user configuration
+- name: Upload dashboard admin user configuration to the cluster
+  ansible.builtin.copy:
+      src: "dashboard-admin.yml"
+      dest: /tmp/dashboard-admin.yml
+      owner: root
+      group: root
+      force: true
+  when:
+      - k3s_install_exec == "server"
+
+# Apply dashboard admin user configuration to the cluster
+- name: Apply dashboard admin user configuration to the cluster
+  command: kubectl apply -f /tmp/dashboard-admin.yml
+  when:
+      - k3s_install_exec == "server"
+
+# Note: To access the Kubernetes dashboard, you can use the following command:
+# kubectl -n kubernetes-dashboard port-forward --address=0.0.0.0 svc/kubernetes-dashboard-kong-proxy 8443:443
+#
+# Go to https://<your-server-ip>:8443 in your web browser, you will be prompted to enter a token.
+#
+# Then get the admin user token with the following command:
+# kubectl -n kubernetes-dashboard get secret admin-user-token -o jsonpath="{.data.token}" | base64 --decode
