@@ -1,8 +1,8 @@
-# Check if domain PEM certificate file is present on the file system
-- name: Check if domain PEM certificate file is present on the file system
+# Check if domain certificate file is present on the file system
+- name: Check if domain certificate file is present on the file system
   ansible.builtin.stat:
       path: "/etc/pki/ca-trust/source/anchors/{{ k3s_domain }}.pem"
-  register: domain_pem_file
+  register: domain_cert_file
   when:
       - k3s_domain is defined
       - k3s_domain != ""
@@ -21,7 +21,7 @@
 # Check if certificate and key have been added with kubectl
 - name: Check if certificate and key have been added with kubectl
   ansible.builtin.command:
-      cmd: "kubectl get secret -n haproxy-ingress haproxy-kubernetes-ingress-domain-cert -o name"
+      cmd: "kubectl get secret -n haproxy-ingress {{ k3s_domain_tls_secret_name}} -o name"
   register: cert_key
   changed_when: false
   failed_when: false
@@ -29,21 +29,30 @@
       - k3s_domain is defined
       - k3s_domain != ""
       - k3s_install_exec == "server"
-      - domain_pem_file is defined
+      - domain_cert_file is defined
       - domain_key_file is defined
-      - domain_pem_file.stat.exists == true
+      - domain_cert_file.stat.exists == true
 
-# Create the tls secret if it does not exist
-- name: Create the tls secret if it does not exist
-  ansible.builtin.command:
-      cmd: "kubectl create secret tls haproxy-kubernetes-ingress-domain-cert --cert=/etc/pki/ca-trust/source/anchors/{{ k3s_domain }}.pem --key=/etc/pki/tls/private/{{ k3s_domain }}.key -n haproxy-ingress"
+# Set expected secret name for comparison
+- name: Set expected secret name
+  ansible.builtin.set_fact:
+      expected_secret_name: "secret/{{ k3s_domain_tls_secret_name }}"
   when:
       - k3s_domain is defined
       - k3s_domain != ""
       - k3s_install_exec == "server"
-      - domain_pem_file is defined
+
+# Create the tls secret if it does not exist
+- name: Create the tls secret if it does not exist
+  ansible.builtin.command:
+      cmd: "kubectl create secret tls {{ k3s_domain_tls_secret_name}} --cert=/etc/pki/ca-trust/source/anchors/{{ k3s_domain }}.pem --key=/etc/pki/tls/private/{{ k3s_domain }}.key -n haproxy-ingress"
+  when:
+      - k3s_domain is defined
+      - k3s_domain != ""
+      - k3s_install_exec == "server"
+      - domain_cert_file is defined
       - domain_key_file is defined
-      - domain_pem_file.stat.exists == true
+      - domain_cert_file.stat.exists == true
       - domain_key_file.stat.exists == true
       - cert_key is defined
-      - cert_key.stdout != "secret/haproxy-kubernetes-ingress-domain-cert"
+      - cert_key.stdout != expected_secret_name
