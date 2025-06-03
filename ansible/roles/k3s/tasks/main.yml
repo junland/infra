@@ -26,3 +26,4 @@
 - import_tasks: configure-dashboard.yml
 - import_tasks: apps/configure-blue-green.yml
 - import_tasks: apps/configure-jenkins.yml
+- import_tasks: apps/configure-jellyfin.yml

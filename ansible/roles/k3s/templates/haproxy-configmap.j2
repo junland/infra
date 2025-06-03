@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: haproxy-kubernetes-ingress
+  namespace: haproxy-ingress
+data:
+  ssl-certificate: "haproxy-ingress/{{ k3s_domain_tls_secret_name }}"

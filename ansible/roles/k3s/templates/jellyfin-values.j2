@@ -1,0 +1,16 @@
+---
+ingress:
+  enabled: true
+  apiVersion: "networking.k8s.io/v1"
+  ingressClassName: haproxy
+  hosts:
+    - host: jellyfin.{{ k3s_domain }}
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: {{ k3s_domain_tls_secret_name }}
+      hosts:
+        - jellyfin.{{ k3s_domain }}
+  annotations:
+    haproxy.org/ingress.class: "haproxy"

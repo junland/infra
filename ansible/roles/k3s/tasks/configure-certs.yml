@@ -56,3 +56,19 @@
       - domain_key_file.stat.exists == true
       - cert_key is defined
       - cert_key.stdout != expected_secret_name
+
+# Upload haproxy configmap with jinja2 template
+- name: Upload haproxy configmap with jinja2 template
+  ansible.builtin.template:
+      src: haproxy-configmap.j2
+      dest: /tmp/haproxy-configmap.yaml
+      mode: "0644"
+  when:
+      - k3s_install_exec == "server"
+
+# Apply haproxy configmap
+- name: Apply haproxy configmap
+  ansible.builtin.command:
+      cmd: "kubectl apply -f /tmp/haproxy-configmap.yaml"
+  when:
+      - k3s_install_exec == "server"
