@@ -41,7 +41,6 @@
   command: kubectl apply -f /tmp/dashboard-admin.yml
   when:
       - k3s_install_exec == "server"
-
 # Note: To access the Kubernetes dashboard, you can use the following command:
 # kubectl -n kubernetes-dashboard port-forward --address=0.0.0.0 svc/kubernetes-dashboard-kong-proxy 8443:443
 #
