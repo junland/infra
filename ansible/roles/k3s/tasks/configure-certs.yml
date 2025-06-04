@@ -1,3 +1,5 @@
+# Configures the k3s installation to use custom certificates for the domain
+
 # Check if domain certificate file is present on the file system
 - name: Check if domain certificate file is present on the file system
   ansible.builtin.stat:
@@ -57,18 +59,18 @@
       - cert_key is defined
       - cert_key.stdout != expected_secret_name
 
-# Upload haproxy configmap with jinja2 template
-- name: Upload haproxy configmap with jinja2 template
+# Upload haproxy config with jinja2 template
+- name: Upload haproxy config with jinja2 template
   ansible.builtin.template:
-      src: haproxy-configmap.j2
-      dest: /tmp/haproxy-configmap.yaml
+      src: haproxy-config.j2
+      dest: /tmp/haproxy-config.yaml
       mode: "0644"
   when:
       - k3s_install_exec == "server"
 
-# Apply haproxy configmap
-- name: Apply haproxy configmap
+# Apply haproxy config
+- name: Apply haproxy config
   ansible.builtin.command:
-      cmd: "kubectl apply -f /tmp/haproxy-configmap.yaml"
+      cmd: "kubectl apply -f /tmp/haproxy-config.yaml"
   when:
       - k3s_install_exec == "server"

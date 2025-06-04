@@ -1,3 +1,5 @@
+# Configures the Kubernetes dashboard for k3s installation
+
 # Add kubernetes dashboard helm repository
 - name: Add Kubernetes dashboard helm repository
   command: helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
