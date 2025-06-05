@@ -20,11 +20,11 @@
       - k3s_domain != ""
       - k3s_install_exec == "server"
 
-# Check if certificate and key have been added with kubectl
-- name: Check if certificate and key have been added with kubectl
+# Check if certificate and key secret have been added with kubectl
+- name: Check if certificate and key secret have been added with kubectl
   ansible.builtin.command:
       cmd: "kubectl get secret -n haproxy-ingress {{ k3s_domain_tls_secret_name}} -o name"
-  register: cert_key
+  register: cert_key_secret
   changed_when: false
   failed_when: false
   when:
@@ -34,6 +34,7 @@
       - domain_cert_file is defined
       - domain_key_file is defined
       - domain_cert_file.stat.exists == true
+      - domain_key_file.stat.exists == true
 
 # Set expected secret name for comparison
 - name: Set expected secret name
@@ -56,8 +57,8 @@
       - domain_key_file is defined
       - domain_cert_file.stat.exists == true
       - domain_key_file.stat.exists == true
-      - cert_key is defined
-      - cert_key.stdout != expected_secret_name
+      - cert_key_secret is defined
+      - cert_key_secret.rc != 0
 
 # Upload haproxy config with jinja2 template
 - name: Upload haproxy config with jinja2 template
