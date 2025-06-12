@@ -9,5 +9,3 @@ controller:
       - secretName: {{ k3s_domain_tls_secret_name }}
         hosts:
           - jenkins.{{ k3s_domain }}
-    annotations:
-      haproxy.org/ingress.class: "haproxy"
