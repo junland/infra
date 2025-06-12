@@ -1,8 +1,10 @@
+#
 # Configures the k3s installation to use custom certificates for the domain
+#
 
 # Check if domain certificate file is present on the file system
 - name: Check if domain certificate file is present on the file system
-  ansible.builtin.stat:
+  stat:
       path: "/etc/pki/ca-trust/source/anchors/{{ k3s_domain }}.pem"
   register: domain_cert_file
   when:
@@ -12,7 +14,7 @@
 
 # Check if domain key is present on the file system
 - name: Check if domain key file is present on the file system
-  ansible.builtin.stat:
+  stat:
       path: "/etc/pki/tls/private/{{ k3s_domain }}.key"
   register: domain_key_file
   when:
@@ -22,8 +24,7 @@
 
 # Check if certificate and key secret have been added with kubectl
 - name: Check if certificate and key secret have been added with kubectl
-  ansible.builtin.command:
-      cmd: "kubectl get secret -n haproxy-ingress {{ k3s_domain_tls_secret_name}} -o name"
+  command: "kubectl get secret -n haproxy-ingress {{ k3s_domain_tls_secret_name}} -o name"
   register: cert_key_secret
   changed_when: false
   failed_when: false

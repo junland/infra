@@ -1,4 +1,6 @@
+#
 # Configures the Kubernetes dashboard for k3s installation
+#
 
 # Add kubernetes dashboard helm repository
 - name: Add Kubernetes dashboard helm repository
@@ -29,7 +31,7 @@
 
 # Upload and apply dashboard admin user configuration
 - name: Upload dashboard admin user configuration to the cluster
-  ansible.builtin.copy:
+  copy:
       src: "dashboard-admin.yml"
       dest: /tmp/dashboard-admin.yml
       owner: root
@@ -43,6 +45,7 @@
   command: kubectl apply -f /tmp/dashboard-admin.yml
   when:
       - k3s_install_exec == "server"
+#
 # Note: To access the Kubernetes dashboard, you can use the following command:
 # kubectl -n kubernetes-dashboard port-forward --address=0.0.0.0 svc/kubernetes-dashboard-kong-proxy 8443:443
 #
@@ -50,3 +53,4 @@
 #
 # Then get the admin user token with the following command:
 # kubectl -n kubernetes-dashboard get secret admin-user-token -o jsonpath="{.data.token}" | base64 --decode
+#

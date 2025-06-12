@@ -1,5 +1,6 @@
----
+#
 # Install k3s on the target node(s)
+#
 
 - name: Download k3s installation script
   get_url:

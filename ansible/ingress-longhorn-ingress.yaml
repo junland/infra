@@ -1,0 +1,44 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    ingress.kubernetes.io/auth-realm: Authentication Required
+    ingress.kubernetes.io/auth-secret: longhorn-system/longhorn-auth
+    ingress.kubernetes.io/auth-type: basi
+    ingress.kubernetes.io/ingress.class: haproxy
+    meta.helm.sh/release-name: longhorn
+    meta.helm.sh/release-namespace: longhorn-system
+  creationTimestamp: "2025-06-12T21:12:38Z"
+  generation: 1
+  labels:
+    app: longhorn-ingress
+    app.kubernetes.io/instance: longhorn
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: longhorn
+    app.kubernetes.io/version: v1.9.0
+    helm.sh/chart: longhorn-1.9.0
+  name: longhorn-ingress
+  namespace: longhorn-system
+  resourceVersion: "1427"
+  uid: 98af0b09-57f5-47ed-9497-a442f25dc57c
+spec:
+  ingressClassName: haproxy
+  rules:
+  - host: longhorn.kube.jlab.space
+    http:
+      paths:
+      - backend:
+          service:
+            name: longhorn-frontend
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - longhorn.kube.jlab.space
+    secretName: haproxy-kubernetes-ingress-domain-cert
+status:
+  loadBalancer:
+    ingress:
+    - ip: 192.168.1.16

@@ -14,6 +14,12 @@ k3s_haproxy_values: "controller.service.type=LoadBalancer,controller.service.loa
 
 k3s_install_version: "v1.33.1+k3s1"
 
+k3s_longhorn_version: "v1.9.0"
+
 k3s_domain: "kube.local"
 
-k3s_domain_tls_secret_name: "haproxy-kubernetes-ingress-domain-cert"
+k3s_domain_tls_secret_name: "haproxy-kubernetes-ingress-default-cert"
+
+k3s_longhorn_username: "longhorn"
+
+k3s_longhorn_password: "changeme"

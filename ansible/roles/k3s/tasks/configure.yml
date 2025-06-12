@@ -1,5 +1,6 @@
----
+#
 # Configures the k3s installation and sets up kubectl and helm
+#
 
 - name: Download helm installation script
   get_url:
