@@ -79,11 +79,10 @@
   when:
       - k3s_install_exec == "server"
       - longhorn_repo_add.rc == 0
-      - longhorn_namespace_check.rc == 0
 
 # Generate longhorn auth-basic password
 - name: Generate longhorn auth-basic password
-  shell: echo "{{ k3s_longhorn_password }}" | openssl passwd -stdin -apr1
+  shell: echo "{{ k3s_longhorn_password }}" | openssl passwd -stdin -1
   register: longhorn_auth_basic_password
   failed_when: false
   changed_when: false
@@ -134,7 +133,7 @@
 
 # Deploy longhorn using helm
 - name: Deploy longhorn using helm
-  command: helm install --wait --hide-notes -n longhorn-system longhorn longhorn/longhorn --values /tmp/longhorn-values-config.yaml --version {{ k3s_longhorn_version }}
+  command: helm install --atomic --hide-notes -n longhorn-system longhorn longhorn/longhorn --values /tmp/longhorn-values-config.yaml --version {{ k3s_longhorn_version }}
   when:
       - k3s_install_exec == "server"
       - longhorn_repo_add.rc == 0
