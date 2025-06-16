@@ -221,7 +221,7 @@
       line: "{{ item }}"
       create: yes
   with_items:
-      - "zfs"
+      - zfs
   when:
       - zfs_enabled|bool
       - ansible_os_family in ['Alpine']

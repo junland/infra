@@ -91,16 +91,6 @@
       - k3s_longhorn_username is defined
       - k3s_longhorn_password is defined
 
-# Combine username and password
-- name: Combine username and password
-  set_fact:
-      longhorn_auth_basic: "{{ k3s_longhorn_username }}:{{ longhorn_auth_basic_password.stdout }}"
-  when:
-      - k3s_install_exec == "server"
-      - k3s_longhorn_username is defined
-      - k3s_longhorn_password is defined
-      - longhorn_auth_basic_password.rc == 0
-
 # Upload longhorn values config with jinja2 template
 - name: Upload longhorn values config with jinja2 template
   template:

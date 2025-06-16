@@ -9,6 +9,6 @@ ingress:
   tlsSecret: "{{ k3s_domain_tls_secret_name }}"
   annotations:
     haproxy.org/ingress.class: "haproxy"
-    haproxy.org/auth-type: "basic"
+    haproxy.org/auth-type: "basic-auth"
     haproxy.org/auth-secret: "longhorn-system/longhorn-auth"
     haproxy.org/auth-realm: "Authentication Required"
