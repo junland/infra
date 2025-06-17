@@ -9,7 +9,7 @@
       policy: targeted
       state: permissive
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - not docker_testing
 
 - name: Add rsyslog configuration
@@ -140,7 +140,7 @@
       state: link
       force: yes
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - not docker_testing
       - nfs_enabled|bool
 
@@ -152,7 +152,7 @@
       zone: public
       state: enabled
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - not docker_testing
       - nfs_enabled|bool
 
@@ -164,7 +164,7 @@
       zone: public
       state: enabled
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - not docker_testing
       - nfs_enabled|bool
 
@@ -176,7 +176,7 @@
       zone: public
       state: enabled
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - not docker_testing
       - samba_enabled|bool
 

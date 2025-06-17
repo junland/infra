@@ -10,8 +10,12 @@ docker_repo_gpg_key_url: "https://download.docker.com/linux/rhel/gpg"
 docker_repo_file_path: "/etc/yum.repos.d/docker-ce.repo"
 
 zfs_enabled: false
-zfs_repo_rpm_url: "https://zfsonlinux.org/epel/zfs-release-2-3.{{ ansible_distribution_major_version }}.noarch.rpm"
+zfs_repo_rpm_url: "http://download.zfsonlinux.org/epel/10Server/zfs-release-2-8.el{{ ansible_distribution_major_version }}.noarch.rpm"
 zfs_repo_file_path: "/etc/yum.repos.d/zfs.repo"
+
+nvidia_compute_enabled: false
+nvidia_compute_repo_url: "https://developer.download.nvidia.com/compute/cuda/repos/rhel{{ ansible_distribution_major_version }}/{{ ansible_architecture }}/cuda-rhel{{ ansible_distribution_major_version }}.repo"
+nvidia_repo_file_path: "/etc/yum.repos.d/nvidia.repo"
 
 sshd_port: "22"
 docker_testing: false

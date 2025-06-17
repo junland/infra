@@ -13,7 +13,7 @@
       state: link
       force: yes
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
 
 - name: Create yum.repos.d to repos.d symlink
   file:
@@ -22,28 +22,28 @@
       state: link
       force: yes
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
 
 - name: Check if EPEL repo is already configured
   stat:
       path: "{{ epel_repo_file_path }}"
   register: epel_repofile_result
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
 
 - name: Check if Docker repo is already configured
   stat:
       path: "{{ docker_repo_file_path }}"
   register: docker_repofile_result
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - docker_enabled|bool
 
 - name: Display EPEL repo URL
   debug:
       msg: "EPEL ( {{ ansible_pkg_mgr }} ) repo URL: {{ epel_repo_rpm_url }}"
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - not epel_repofile_result.stat.exists
 
 - name: Import EPEL GPG key
@@ -51,7 +51,7 @@
       key: "{{ epel_repo_gpg_key_url }}"
       state: present
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
 
 - name: Install EPEL repo
   action: "{{ ansible_pkg_mgr }}"
@@ -63,7 +63,7 @@
   retries: 3
   delay: 10
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
 
 - name: Install ZFS repo
   action: "{{ ansible_pkg_mgr }}"
@@ -76,7 +76,7 @@
   retries: 5
   delay: 10
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - zfs_enabled|bool
 
 - name: Install ZFS
@@ -86,8 +86,38 @@
       state: latest
       update_cache: true
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - zfs_enabled|bool
+      - not ansible_check_mode
+
+- name: Install NVIDIA Compute repo
+  action: "{{ ansible_pkg_mgr }}"
+  args:
+      name: "{{ nvidia_compute_repo_url }}"
+      state: present
+  register: result
+  until: result is succeeded
+  retries: 3
+  delay: 10
+  when:
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
+      - nvidia_compute_enabled|bool
+
+- name: Rename NVIDIA repo file
+  command: mv /etc/yum.repos.d/cuda-rhel{{ ansible_distribution_major_version }}.repo {{ nvidia_repo_file_path }}
+  when:
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
+      - nvidia_compute_enabled|bool
+      - not ansible_check_mode
+
+- name: Update NVIDIA repo file with updated name
+  lineinfile:
+      path: {{ nvidia_repo_file_path }}
+      regexp: '^name='
+      line: 'name=NVIDIA'
+  when:
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
+      - nvidia_compute_enabled|bool
       - not ansible_check_mode
 
 - name: Install Docker repo
@@ -98,7 +128,7 @@
       gpgcheck: yes
       gpgkey: https://download.docker.com/linux/centos/gpg
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - docker_enabled|bool
 
 - name: Import Docker GPG key
@@ -106,7 +136,7 @@
       key: "{{ docker_repo_gpg_key_url }}"
       state: present
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - docker_enabled|bool
 
 - name: Install Docker
@@ -117,7 +147,7 @@
       state: latest
       update_cache: true
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - docker_enabled|bool
       - not ansible_check_mode
 
@@ -127,7 +157,7 @@
       enabled: yes
       masked: no
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - docker_enabled|bool
 
 - name: Ensure Docker service is running
@@ -135,7 +165,7 @@
       state: started
       name: docker
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - docker_enabled|bool
 
 - name: Install needed packages
@@ -151,7 +181,7 @@
       state: latest
       update_cache: true
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - not ansible_check_mode
 
 - name: Install NFS Packages
@@ -161,7 +191,7 @@
       state: latest
       update_cache: true
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - nfs_enabled|bool
       - not ansible_check_mode
 
@@ -172,6 +202,6 @@
       state: latest
       update_cache: true
   when:
-      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
+      - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - samba_enabled|bool
       - not ansible_check_mode
