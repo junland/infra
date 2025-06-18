@@ -1,16 +1,32 @@
 ---
-- name: Configure motd (CentOS / Red Hat / Fedora)
+- name: Configure motd
   template:
       src: motd.j2
       dest: /etc/motd
 
-- name: Put SELinux in permissive mode (CentOS / Red Hat / Fedora)
+
+- name: Put SELinux in permissive mode (RHEL Family)
   selinux:
       policy: targeted
       state: permissive
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - not docker_testing
+
+- name: Add logrotate configurations
+  copy:
+    src: "logrotate/logrotate-{{ item.name }}.conf"
+    dest: "/etc/logrotate.d/{{ item.name }}"
+    owner: root
+    group: root
+    force: true
+  loop:
+    - { name: bootlog }
+    - { name: btmp }
+    - { name: chrony }
+    - { name: dnf }
+    - { name: firewalld }
+    - { name: syslog }
 
 - name: Add rsyslog configuration
   copy:
@@ -26,69 +42,29 @@
       state: directory
       mode: "0700"
 
-- name: Add syslog configuration for logrotate
-  copy:
-      src: logrotate/logrotate-syslog.conf
-      dest: "/etc/logrotate.d/syslog"
-      owner: root
-      group: root
-      force: true
-
-- name: Add firewalld configuration for logrotate
-  copy:
-      src: logrotate/logrotate-firewalld.conf
-      dest: "/etc/logrotate.d/firewalld"
-      owner: root
-      group: root
-      force: true
-
-- name: Add dnf configuration for logrotate
-  copy:
-      src: logrotate/logrotate-dnf.conf
-      dest: "/etc/logrotate.d/dnf"
-      owner: root
-      group: root
-      force: true
-
-- name: Add bootlog configuration for logrotate
-  copy:
-      src: logrotate/logrotate-bootlog.conf
-      dest: "/etc/logrotate.d/bootlog"
-      owner: root
-      group: root
-      force: true
-
-- name: Add btmp configuration for logrotate
-  copy:
-      src: logrotate/logrotate-btmp.conf
-      dest: "/etc/logrotate.d/btmp"
-      owner: root
-      group: root
-      force: true
-
 - name: Add smartd configuration for rsyslog
   copy:
-      src: rsyslog/rsyslog-smartd.conf
-      dest: "/etc/rsyslog.d/smartd.conf"
-      owner: root
-      group: root
-      force: true
+    src: rsyslog/rsyslog-smartd.conf
+    dest: "/etc/rsyslog.d/smartd.conf"
+    owner: root
+    group: root
+    force: true
 
 - name: Add limits configuration
   copy:
-      src: limits.conf
-      dest: "/etc/security/limits.d/limits.conf"
-      owner: root
-      group: root
-      force: true
+    src: limits.conf
+    dest: "/etc/security/limits.d/limits.conf"
+    owner: root
+    group: root
+    force: true
 
 - name: Add sysctl tune configuration
   copy:
-      src: tune-sysctl.conf
-      dest: "/etc/sysctl.d/01-tune.conf"
-      owner: root
-      group: root
-      force: true
+    src: tune-sysctl.conf
+    dest: "/etc/sysctl.d/01-tune.conf"
+    owner: root
+    group: root
+    force: true
 
 - name: Apply sysctl tune
   command: sysctl --system
