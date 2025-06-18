@@ -17,8 +17,8 @@
 
 # ansbile.
 ansible/roles/apps/znc/files/*.tar.*
-ansible/*inventory.ini
-ansible/*inventory.yml
+ansible/*inventory*.ini
+ansible/*inventory*.yml
 ansible/*inv.yml
 ansible/*inv.ini
 ansible/*-run.yml
