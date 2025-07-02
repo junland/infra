@@ -14,3 +14,10 @@ ingress:
         - jellyfin.{{ k3s_domain }}
   annotations:
     haproxy.org/ingress.class: "haproxy"
+persistence:
+  config:
+    enabled: true
+    size: 2Gi
+  media:
+    enabled: true
+    size: 2Gi
