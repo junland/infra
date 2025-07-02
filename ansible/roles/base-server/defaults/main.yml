@@ -30,5 +30,10 @@ motd_info:
     - " CPUs:    ": "{{ ansible_processor_vcpus }}"
     - " RAM:     ": "{{ (ansible_memtotal_mb / 1000) | round(1) }}GB"
 
+lego_enabled: false
+lego_version: "4.23.1"
+docker_compose_enabled: false
+docker_compose_version: "2.37.2"
+
 # refer to scripts directory outside of roles two directories down.
 scripts_dir: "{{ playbook_dir }}/../../scripts"

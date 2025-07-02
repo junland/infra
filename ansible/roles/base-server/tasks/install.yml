@@ -79,16 +79,12 @@
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - zfs_enabled|bool
 
-- name: Install ZFS
-  dnf:
-      name:
-          - zfs
-      state: latest
-      update_cache: true
+- name: Display NVIDIA Compute repo URL
+  debug:
+      msg: "NVIDIA Compute ( {{ ansible_pkg_mgr }} ) repo URL: {{ nvidia_compute_repo_url }}"
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
-      - zfs_enabled|bool
-      - not ansible_check_mode
+      - nvidia_compute_enabled|bool
 
 - name: Install NVIDIA Compute repo
   action: "{{ ansible_pkg_mgr }}"
@@ -112,7 +108,7 @@
 
 - name: Update NVIDIA repo file with updated name
   lineinfile:
-      path: {{ nvidia_repo_file_path }}
+      path: "{{ nvidia_repo_file_path }}"
       regexp: '^name='
       line: 'name=NVIDIA'
   when:
