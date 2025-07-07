@@ -26,7 +26,7 @@
 # Write iscsi_iname to /etc/iscsi/initiatorname.iscsi
 - name: Write iscsi_iname to /etc/iscsi/initiatorname.iscsi
   copy:
-      content: "InitiatorName=\"{{ iscsi_iname }}\""
+      content: 'InitiatorName="{{ iscsi_iname }}"'
       dest: /etc/iscsi/initiatorname.iscsi
       mode: "0644"
   when:
@@ -128,4 +128,3 @@
       - k3s_install_exec == "server"
       - longhorn_repo_add.rc == 0
       - longhorn_check.rc != 0
-
