@@ -13,3 +13,7 @@ A VERY high overview of how to run this all.
 5. Configure variables and run `terraform` configuration.
 6. ???
 7. Enjoy
+
+# License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
