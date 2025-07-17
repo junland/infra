@@ -1,0 +1,25 @@
+name: Sync All Branches to GitLab
+
+on:
+  push:
+    branches: [ master, main, develop, dev ]
+  pull_request:
+    branches: [ master, main, develop, dev ]
+
+jobs:
+    sync:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+          with:
+           submodules: 'true'
+           fetch-depth: 0  # Fetch all branches
+
+        - name: Sync branches to GitLab
+          run: |
+            git remote add gitlab https://gitlab.com/junland/infra.git
+            git push gitlab --all --force
+            git push gitlab --tags --force
+            env:
+              GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
