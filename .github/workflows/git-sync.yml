@@ -21,8 +21,6 @@ jobs:
             # Configure Git
             git config user.name "GitHub Actions"
             git config user.email "actions@github.com"
-            git remote add gitlab https://gitlab.com/junland/infra.git
+            git remote add gitlab https://gitlab-token:${{ secrets.GITLAB_TOKEN }}@gitlab.com/junland/infra.git
             git push gitlab --all --force
             git push gitlab --tags --force
-            env:
-              GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
