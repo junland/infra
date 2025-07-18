@@ -1,12 +1,13 @@
-FROM rockylinux:9
+FROM rockylinux:8
 
 RUN mkdir /work
 
 WORKDIR /work
 
-RUN dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -y
-
-RUN dnf update -y && dnf install sudo ansible python3-libselinux unzip tar crontabs cronie logrotate -y
+# Install EPEL repository and required packages 
+RUN dnf install -y epel-release && \
+    dnf update -y && \
+    dnf install -y sudo ansible python3-libselinux unzip tar crontabs cronie logrotate
 
 RUN rm -rf /etc/*epel.repo
 
@@ -18,8 +19,9 @@ RUN rm -f ./run.yml ./inventory.yml
 
 RUN mv ./test/*.yml ./
 
-RUN ansible-galaxy collection install -v -r requirements.yml && \
-    ansible-galaxy role install -v -r requirements.yml
+# Skip galaxy collection install as it's not used by the roles
+# RUN ansible-galaxy collection install -v -r requirements.yml && \
+#     ansible-galaxy role install -v -r requirements.yml
 
 RUN ansible-playbook --check --become-user root --inventory-file test-inventory.yml test-run.yml
 
