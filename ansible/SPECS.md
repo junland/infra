@@ -23,9 +23,6 @@ This document contains a high level overview of the included roles.
    - Used for logging of servers, devices, and applications.
    - Exposed port @ `9098` (grafana)
    - Exposed port @ `3100` (loki)
-* promtail
-   - Used for pushing logs to loki.
-   - Exposed port @ `9080`
 
 ## Container Service Roles Directory Layout
 

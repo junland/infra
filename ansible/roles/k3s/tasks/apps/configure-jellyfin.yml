@@ -1,0 +1,36 @@
+# Add Jellyfin helm repository
+- name: Add Jellyfin helm repository
+  command: helm repo add jellyfin https://jellyfin.github.io/jellyfin-helm
+  register: jellyfin_repo_add
+  failed_when: false
+  changed_when: false
+  when:
+      - k3s_install_exec == "server"
+
+# Check if Jellyfin is already installed
+- name: Check if Jellyfin is already installed
+  command: helm status -n jellyfin jellyfin
+  register: jellyfin_check
+  failed_when: false
+  changed_when: false
+  when:
+      - k3s_install_exec == "server"
+      - jellyfin_repo_add.rc == 0
+
+# Jellyfin values template file
+- name: Put Jellyfin values config with jinja2 template
+  template:
+      src: jellyfin-values.j2
+      dest: /tmp/jellyfin-values-config.yaml
+      mode: "0644"
+      force: true
+  when:
+      - k3s_install_exec == "server"
+
+# Install / Upgrade Jellyfin using helm
+- name: Install / Upgrade Jellyfin using helm
+  command: helm install --create-namespace --atomic --hide-notes -n jellyfin jellyfin jellyfin/jellyfin --values /tmp/jellyfin-values-config.yaml
+  when:
+      - k3s_install_exec == "server"
+      - jellyfin_repo_add.rc == 0
+      - jellyfin_check.rc != 0

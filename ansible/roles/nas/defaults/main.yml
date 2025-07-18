@@ -6,10 +6,10 @@ nas_mount_dir: /mnt/storage
 
 # array of directories to create in the main pool
 nas_dirs:
-  - "{{ nas_mount_dir }}/apps"
   - "{{ nas_mount_dir }}/share"
   - "{{ nas_mount_dir }}/media"
-  - "{{ nas_mount_dir }}/home"
+  - "{{ nas_mount_dir }}/backup"
+  - "{{ nas_mount_dir }}/ai"
 
 # refer to scripts directory outside of roles two directories down.
 scripts_dir: "{{ playbook_dir }}/../scripts"

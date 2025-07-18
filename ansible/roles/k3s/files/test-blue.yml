@@ -1,0 +1,78 @@
+---
+# APP Deployment with for blue
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: test-app-blue
+    labels:
+        app: test-app
+        color: blue
+spec:
+    replicas: 3
+    selector:
+        matchLabels:
+            color: blue
+    template:
+        metadata:
+            labels:
+                app: test-app
+                color: blue
+        spec:
+            # Set affinity to ensure that the blue and green pods are not scheduled on the same node
+            affinity:
+                nodeAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                        nodeSelectorTerms:
+                            - matchExpressions:
+                                  - key: kubernetes.io/os
+                                    operator: In
+                                    values:
+                                        - linux
+            containers:
+                - name: test-blue
+                  image: docker.io/kirbah/blue-green:blue
+                  ports:
+                      - containerPort: 8080
+                  resources:
+                      requests:
+                          cpu: 100m
+                          memory: 128Mi
+                      limits:
+                          cpu: 200m
+                          memory: 256Mi
+---
+# Service for blue
+apiVersion: v1
+kind: Service
+metadata:
+    name: svc-blue
+    labels:
+        color: blue
+spec:
+    ports:
+        - port: 80
+          protocol: TCP
+          targetPort: 8080
+    selector:
+        app: test-app
+        color: blue
+---
+# Service ingress for blue
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: lb-ingress-blue
+spec:
+    ingressClassName: haproxy
+    # Rules to route blue.local to blue service
+    rules:
+        - host: blue.local
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: svc-blue
+                            port:
+                                number: 80

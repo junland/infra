@@ -6,11 +6,5 @@
 - hosts: internal_servers
   become: yes
   roles:
-    - role: base
-    - role: services/containers/transmission-seed
-    - role: services/containers/homarr
-    - role: services/containers/minio
-    - role: services/containers/node-red
-    - role: services/containers/observe
-    - role: services/containers/nextcloud
-    - role: services/baremetal/haproxy
+    #- role: base-server
+    - role: k3s

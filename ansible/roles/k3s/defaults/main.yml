@@ -1,0 +1,25 @@
+---
+# defaults file for roles/k3s
+k3s_install_exec: "server"
+
+# k3s_init_cluster is used to specify if the server is the initial cluster node.
+k3s_init_cluster: null
+
+# k3s_install_url_host is used to specify the host for the k3s installation URL.
+k3s_install_url_host: localhost
+
+k3s_metallb_ip_pool: ""
+
+k3s_haproxy_values: "controller.service.type=LoadBalancer,controller.service.loadBalancerIP={{ k3s_metallb_ip }}"
+
+k3s_install_version: "v1.33.1+k3s1"
+
+k3s_longhorn_version: "v1.9.0"
+
+k3s_domain: "kube.local"
+
+k3s_domain_tls_secret_name: "haproxy-kubernetes-ingress-default-cert"
+
+k3s_longhorn_username: "longhorn"
+
+k3s_longhorn_password: "changeme"

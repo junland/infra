@@ -1,0 +1,11 @@
+---
+controller:
+  ingress:
+    enabled: true
+    apiVersion: "networking.k8s.io/v1"
+    hostName: jenkins.{{ k3s_domain }}
+    ingressClassName: haproxy
+    tls:
+      - secretName: {{ k3s_domain_tls_secret_name }}
+        hosts:
+          - jenkins.{{ k3s_domain }}

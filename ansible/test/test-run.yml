@@ -3,5 +3,5 @@
   become: yes
   connection: local
   roles:
-    - role: base
+    - role: base-server
     - role: nas

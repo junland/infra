@@ -1,0 +1,57 @@
+# Upload and apply test-app.yml to the cluster
+
+# Upload test-app-blue.yml to the cluster
+- name: Upload test-app.yml to the cluster
+  ansible.builtin.copy:
+      src: "test-blue.yml"
+      dest: /tmp/test-app-blue.yml
+      owner: root
+      group: root
+      force: true
+  when:
+      - k3s_install_exec == "server"
+
+# Replace the value of .local with the value of k3s_domain in test-app-blue.yml
+- name: Replace the value of .local with the value of k3s_domain in test-app-blue.yml
+  ansible.builtin.replace:
+      path: /tmp/test-app-blue.yml
+      regexp: '\.local'
+      replace: ".{{ k3s_domain }}"
+  when:
+      - k3s_install_exec == "server"
+      - k3s_domain is defined
+      - k3s_domain != ""
+
+# Upload test-app-green.yml to the cluster
+- name: Upload test-app-green.yml to the cluster
+  ansible.builtin.copy:
+      src: "test-green.yml"
+      dest: /tmp/test-app-green.yml
+      owner: root
+      group: root
+      force: true
+  when:
+      - k3s_install_exec == "server"
+
+# Replace the value of .local with the value of k3s_domain in test-app-green.yml
+- name: Replace the value of .local with the value of k3s_domain in test-app-green.yml
+  ansible.builtin.replace:
+      path: /tmp/test-app-green.yml
+      regexp: '\.local'
+      replace: ".{{ k3s_domain }}"
+  when:
+      - k3s_install_exec == "server"
+      - k3s_domain is defined
+      - k3s_domain != ""
+
+# Apply test-app-blue.yml to the cluster
+- name: Apply test-app-blue.yml to the cluster
+  command: kubectl apply -f /tmp/test-app-blue.yml
+  when:
+      - k3s_install_exec == "server"
+
+# Apply test-app-green.yml to the cluster
+- name: Apply test-app-green.yml to the cluster
+  command: kubectl apply -f /tmp/test-app-green.yml
+  when:
+      - k3s_install_exec == "server"

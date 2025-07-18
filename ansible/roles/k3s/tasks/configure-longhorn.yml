@@ -1,0 +1,130 @@
+#
+# Configures and installs Longhorn for persistent storage in k3s
+#
+
+# Install iscsi-initiator-utils package
+- name: Install iscsi-initiator-utils package
+  package:
+      name: iscsi-initiator-utils
+      state: present
+
+# Get initiator name from the system
+- name: Get initiator name from each system
+  command: iscsi-iname
+  register: iscsi_iname
+  changed_when: false
+  failed_when: false
+
+# Add iscsi_iname to facts
+- name: Add iscsi_iname to facts
+  set_fact:
+      iscsi_iname: "{{ iscsi_iname.stdout }}"
+  when:
+      - iscsi_iname is defined
+      - iscsi_iname.stdout != ""
+
+# Write iscsi_iname to /etc/iscsi/initiatorname.iscsi
+- name: Write iscsi_iname to /etc/iscsi/initiatorname.iscsi
+  copy:
+      content: 'InitiatorName="{{ iscsi_iname }}"'
+      dest: /etc/iscsi/initiatorname.iscsi
+      mode: "0644"
+  when:
+      - iscsi_iname is defined
+      - iscsi_iname != ""
+
+# Ensure iscsi service is enabled and started
+- name: Ensure iscsi service is enabled and started
+  ansible.builtin.systemd:
+      name: iscsid
+      state: started
+      enabled: true
+
+# Add longhorn helm repository
+- name: Add longhorn helm repository
+  command: helm repo add longhorn https://charts.longhorn.io
+  register: longhorn_repo_add
+  failed_when: false
+  changed_when: false
+  when:
+      - k3s_install_exec == "server"
+
+# Check if longhorn namespace exists
+- name: Check if longhorn namespace exists
+  command: kubectl get namespace longhorn-system
+  register: longhorn_namespace_check
+  failed_when: false
+  changed_when: false
+  when:
+      - k3s_install_exec == "server"
+      - longhorn_repo_add.rc == 0
+
+# Create longhorn namespace if it does not exist
+- name: Create longhorn namespace if it does not exist
+  command: kubectl create namespace longhorn-system
+  register: longhorn_namespace_create
+  failed_when: false
+  changed_when: false
+  when:
+      - k3s_install_exec == "server"
+      - longhorn_repo_add.rc == 0
+      - longhorn_namespace_check.rc != 0
+
+# Check if longhorn is already installed
+- name: Check if longhorn is already installed
+  command: helm status -n longhorn-system longhorn
+  register: longhorn_check
+  failed_when: false
+  changed_when: false
+  when:
+      - k3s_install_exec == "server"
+      - longhorn_repo_add.rc == 0
+
+# Generate longhorn auth-basic password
+- name: Generate longhorn auth-basic password
+  shell: echo "{{ k3s_longhorn_password }}" | openssl passwd -stdin -1
+  register: longhorn_auth_basic_password
+  failed_when: false
+  changed_when: false
+  when:
+      - k3s_install_exec == "server"
+      - k3s_longhorn_username is defined
+      - k3s_longhorn_password is defined
+
+# Upload longhorn values config with jinja2 template
+- name: Upload longhorn values config with jinja2 template
+  template:
+      src: longhorn-values.j2
+      dest: /tmp/longhorn-values-config.yaml
+      mode: "0644"
+      force: true
+  when:
+      - k3s_install_exec == "server"
+
+# Upload longhorn secret with jinja2 template
+- name: Upload longhorn secret
+  template:
+      src: longhorn-secret.j2
+      dest: /tmp/longhorn-secret.yaml
+      mode: "0644"
+      force: true
+  when:
+      - k3s_install_exec == "server"
+      - k3s_longhorn_username is defined
+      - k3s_longhorn_password is defined
+
+# Apply longhorn secret to the cluster
+- name: Apply longhorn secret to the cluster
+  command: kubectl apply --wait -f /tmp/longhorn-secret.yaml
+  when:
+      - k3s_install_exec == "server"
+      - k3s_longhorn_username is defined
+      - k3s_longhorn_password is defined
+
+# Deploy longhorn using helm
+- name: Deploy longhorn using helm
+  command: helm install --atomic --hide-notes -n longhorn-system longhorn longhorn/longhorn --values /tmp/longhorn-values-config.yaml --version {{ k3s_longhorn_version }}
+  when:
+      - k3s_install_exec == "server"
+      - longhorn_repo_add.rc == 0
+      - longhorn_check.rc != 0

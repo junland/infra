@@ -1,0 +1,39 @@
+---
+# defaults file for base role
+epel_repo_rpm_url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+epel_repo_gpg_key_url: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+epel_repo_file_path: "/etc/yum.repos.d/epel.repo"
+
+docker_enabled: false
+docker_repo_url: "https://download.docker.com/linux/rhel/docker-ce.repo"
+docker_repo_gpg_key_url: "https://download.docker.com/linux/rhel/gpg"
+docker_repo_file_path: "/etc/yum.repos.d/docker-ce.repo"
+
+zfs_enabled: false
+zfs_repo_rpm_url: "http://download.zfsonlinux.org/epel/10Server/zfs-release-2-8.el{{ ansible_distribution_major_version }}.noarch.rpm"
+zfs_repo_file_path: "/etc/yum.repos.d/zfs.repo"
+
+nvidia_compute_enabled: false
+nvidia_compute_repo_url: "https://developer.download.nvidia.com/compute/cuda/repos/rhel{{ ansible_distribution_major_version }}/{{ ansible_architecture }}/cuda-rhel{{ ansible_distribution_major_version }}.repo"
+nvidia_repo_file_path: "/etc/yum.repos.d/nvidia.repo"
+
+sshd_port: "22"
+docker_testing: false
+nfs_enabled: false
+samba_enabled: false
+
+motd_intro: " Welcome to the jlab.space infrastructure node."
+motd_info:
+    - " FQDN:    ": "{{ ansible_fqdn }}"
+    - " Distro:  ": "InfraOS based on {{ ansible_distribution }} {{ ansible_distribution_version }} {{ ansible_distribution_release }}"
+    - " Virtual: ": "{{ 'YES' if ansible_virtualization_role == 'guest' else 'NO' }}"
+    - " CPUs:    ": "{{ ansible_processor_vcpus }}"
+    - " RAM:     ": "{{ (ansible_memtotal_mb / 1000) | round(1) }}GB"
+
+lego_enabled: false
+lego_version: "4.23.1"
+docker_compose_enabled: false
+docker_compose_version: "2.37.2"
+
+# refer to scripts directory outside of roles two directories down.
+scripts_dir: "{{ playbook_dir }}/../../scripts"

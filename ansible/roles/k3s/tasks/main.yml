@@ -1,0 +1,30 @@
+---
+# tasks file for k3s role
+
+# Ensure inventory is set to internal_servers
+- name: Ensure inventory is set to internal_servers
+  ansible.builtin.assert:
+      that:
+          - "'internal_servers' in groups"
+      fail_msg: "The 'internal_servers' group is not defined in the inventory."
+
+- name: Create ansible temp directory if it does not exist
+  ansible.builtin.file:
+      path: ~/.ansible/tmp
+      state: directory
+      mode: "0700"
+
+- name: Refresh system repos
+  action: "{{ ansible_pkg_mgr }}"
+  args:
+      update_only: yes
+      update_cache: yes
+
+- import_tasks: install.yml
+- import_tasks: configure.yml
+- import_tasks: configure-certs.yml
+- import_tasks: configure-dashboard.yml
+- import_tasks: configure-longhorn.yml
+- import_tasks: apps/configure-blue-green.yml
+- import_tasks: apps/configure-jenkins.yml
+- import_tasks: apps/configure-jellyfin.yml
