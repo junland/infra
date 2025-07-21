@@ -52,11 +52,10 @@
 - name: Add helm repositories
   command: helm repo add {{ item.name }} {{ item.url }}
   loop:
-      - {
-            name: "haproxytech",
-            url: "https://haproxytech.github.io/helm-charts",
-        }
-      - { name: "metallb", url: "https://metallb.github.io/metallb" }
+    - name: "haproxytech"
+      url: "https://haproxytech.github.io/helm-charts"
+    - name: "metallb"
+      url: "https://metallb.github.io/metallb"
   when: k3s_install_exec == "server"
 
 # Check that metallb is not already installed
