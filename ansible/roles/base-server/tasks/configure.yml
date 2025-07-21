@@ -1,12 +1,11 @@
 ---
 - name: Configure motd
-  template:
+  ansible.builtin.template:
       src: motd.j2
       dest: /etc/motd
 
-
 - name: Put SELinux in permissive mode (RHEL Family)
-  selinux:
+  ansible.posix.selinux:
       policy: targeted
       state: permissive
   when:
