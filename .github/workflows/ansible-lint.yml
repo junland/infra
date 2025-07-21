@@ -1,0 +1,22 @@
+name: Ansible Lint
+
+on:
+  push:
+    branches: [ master, main, develop, dev ]
+  pull_request:
+    branches: [ master, main, develop, dev ]
+
+jobs:
+  build:
+    name: Ansible Lint # Naming the build is important to use it as a status check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint@main
+        with:
+          setup_python: "true"
+          working_directory: "ansible"
+          requirements_file: "ansible/requirements.txt"

@@ -25,10 +25,3 @@ jobs:
       run: |
         cd ansible
         ANSIBLE_ROLES_PATH=./roles ansible-playbook --syntax-check -i test/test-inventory.yml test/test-run.yml
-    - name: Run Ansible lint (if yamllint config exists)
-      run: |
-        if [ -f ansible/.yamllint ]; then
-          pip install yamllint
-          cd ansible
-          yamllint . || echo "Yamllint found issues but they are style warnings, not critical errors"
-        fi
