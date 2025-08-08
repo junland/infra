@@ -12,9 +12,9 @@ k3s_metallb_ip_pool: ""
 
 k3s_haproxy_values: "controller.service.type=LoadBalancer,controller.service.loadBalancerIP={{ k3s_metallb_ip }}"
 
-k3s_install_version: "v1.33.1+k3s1"
+k3s_install_version: "v1.33.3+k3s1"
 
-k3s_longhorn_version: "v1.9.0"
+k3s_longhorn_version: "v1.9.1"
 
 k3s_domain: "kube.local"
 
