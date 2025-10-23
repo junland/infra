@@ -7,21 +7,21 @@
       owner: root
       group: root
       mode: 0755
-  with_items: "{{ nas_dirs }}"
+  with_items: "{{ file_server_dirs }}"
   when:
       - not ansible_check_mode
 
 - name: Setup ZFS mountpoints
   command: "{{item}}"
   loop:
-      - "zfs set mountpoint={{ nas_mount_dir }} {{ nas_main_pool }}"
-      - "zfs set canmount=on {{ nas_main_pool }}"
+      - "zfs set mountpoint={{ file_server_mount_dir }} {{ file_server_main_pool }}"
+      - "zfs set canmount=on {{ file_server_main_pool }}"
   when:
       - not ansible_check_mode
       - not docker_testing
 
 - name: Set ACL type for main pool
-  command: "zfs set acltype=posixacl {{ nas_main_pool }}"
+  command: "zfs set acltype=posixacl {{ file_server_main_pool }}"
   when:
       - not docker_testing
 
