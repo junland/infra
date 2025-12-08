@@ -3,9 +3,16 @@
   command: helm repo add jenkins https://charts.jenkins.io
   register: jenkins_repo_add
   failed_when: false
-  changed_when: false
+  changed_when: jenkins_repo_add.rc == 0 and 'already exists' not in jenkins_repo_add.stderr
   when:
       - k3s_install_exec == "server"
+
+# Update Jenkins helm repository
+- name: Update Jenkins helm repository
+  command: helm repo update jenkins
+  when:
+      - k3s_install_exec == "server"
+      - jenkins_repo_add.rc == 0
 
 # Check if Jenkins is already installed
 - name: Check if Jenkins is already installed
