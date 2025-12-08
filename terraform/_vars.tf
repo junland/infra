@@ -13,6 +13,11 @@ variable "cf_account_id" {
   description = "Cloudflare account ID."
 }
 
+variable "do_api_token" {
+  type        = string
+  description = "API token generated from Digital Ocean."
+}
+
 variable "primary_zone_name" {
   type        = string
   description = "Name of the primary zone."
