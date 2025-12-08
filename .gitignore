@@ -58,6 +58,10 @@ override.tf.json
 **/.terraform/*
 *.lock.hcl
 
+# terraform local development files
+_dev_*.tf
+_local_*.tf
+
 # vscode
 .vscode/*
 .history/
