@@ -10,6 +10,8 @@ k3s_install_url_host: localhost
 
 k3s_metallb_ip_pool: ""
 
+k3s_haproxy_disable: false
+
 k3s_haproxy_values: "controller.service.type=LoadBalancer,controller.service.loadBalancerIP={{ k3s_metallb_ip }}"
 
 k3s_install_version: "v1.34.2+k3s1"

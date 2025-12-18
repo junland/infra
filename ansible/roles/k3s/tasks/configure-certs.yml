@@ -8,8 +8,8 @@
       path: "/etc/pki/ca-trust/source/anchors/{{ k3s_domain }}.pem"
   register: domain_cert_file
   when:
-      - k3s_domain is defined
       - k3s_domain != ""
+      - k3s_domain is defined
       - k3s_install_exec == "server"
 
 # Check if domain key is present on the file system
@@ -18,8 +18,8 @@
       path: "/etc/pki/tls/private/{{ k3s_domain }}.key"
   register: domain_key_file
   when:
-      - k3s_domain is defined
       - k3s_domain != ""
+      - k3s_domain is defined
       - k3s_install_exec == "server"
 
 # Check if certificate and key secret have been added with kubectl
@@ -29,13 +29,13 @@
   changed_when: false
   failed_when: false
   when:
-      - k3s_domain is defined
-      - k3s_domain != ""
-      - k3s_install_exec == "server"
       - domain_cert_file is defined
-      - domain_key_file is defined
       - domain_cert_file.stat.exists == true
+      - domain_key_file is defined
       - domain_key_file.stat.exists == true
+      - k3s_domain != ""
+      - k3s_domain is defined
+      - k3s_install_exec == "server"
 
 # Set expected secret name for comparison
 - name: Set expected secret name
@@ -51,15 +51,15 @@
   ansible.builtin.command:
       cmd: "kubectl create secret tls {{ k3s_domain_tls_secret_name}} --cert=/etc/pki/ca-trust/source/anchors/{{ k3s_domain }}.pem --key=/etc/pki/tls/private/{{ k3s_domain }}.key -n haproxy-ingress"
   when:
-      - k3s_domain is defined
-      - k3s_domain != ""
-      - k3s_install_exec == "server"
-      - domain_cert_file is defined
-      - domain_key_file is defined
-      - domain_cert_file.stat.exists == true
-      - domain_key_file.stat.exists == true
       - cert_key_secret is defined
       - cert_key_secret.rc != 0
+      - domain_cert_file is defined
+      - domain_cert_file.stat.exists == true
+      - domain_key_file is defined
+      - domain_key_file.stat.exists == true
+      - k3s_domain != ""
+      - k3s_domain is defined
+      - k3s_install_exec == "server"
 
 # Upload haproxy config with jinja2 template
 - name: Upload haproxy config with jinja2 template
