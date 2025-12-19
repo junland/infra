@@ -16,7 +16,8 @@
 - name: Install k3s server
   command: /tmp/k3s_install.sh
   environment:
-      INSTALL_K3S_EXEC: "--disable traefik --disable servicelb {{ k3s_tls_san_args }}"
+      # If k3s_haproxy_disabled is false, add traefik and servicelb disable flags into INSTALL_K3S_EXEC. If true, do not add them.
+      INSTALL_K3S_EXEC: "{{ '--disable traefik --disable servicelb' if not k3s_haproxy_disable else '' }} {{ k3s_tls_san_args | default('') }}"
       INSTALL_K3S_VERSION: "{{ k3s_install_version }}"
   args:
       creates: /usr/local/bin/k3s
@@ -61,6 +62,8 @@
       token: "{{ hostvars[groups['internal_servers'][0]]['token'] }}"
   when:
       - k3s_install_exec == "agent"
+      - groups['internal_servers'] is defined
+      - groups['internal_servers'] | length > 0
 
 - name: Wait for k3s server to be ready
   command: kubectl get nodes

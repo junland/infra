@@ -15,8 +15,7 @@
       mode: "0700"
 
 - name: Refresh system repos
-  action: "{{ ansible_pkg_mgr }}"
-  args:
+  ansible.builtin.package:
       update_only: yes
       update_cache: yes
 
