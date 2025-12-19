@@ -104,7 +104,7 @@
   when:
       - k3s_install_exec == "server"
       - k3s_metallb_ip is defined and k3s_metallb_ip != ""
-      - not k3s_haproxy_disable
+      - k3s_haproxy_disable == false
 
 # Install haproxy using helm if it is not already installed
 - name: Install haproxy using helm
@@ -113,4 +113,4 @@
       - k3s_install_exec == "server"
       - k3s_metallb_ip is defined and k3s_metallb_ip != ""
       - haproxy_check.failed or haproxy_check.stdout == ""
-      - not k3s_haproxy_disable
+      - k3s_haproxy_disable == false
