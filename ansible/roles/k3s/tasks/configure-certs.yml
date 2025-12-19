@@ -30,11 +30,14 @@
   failed_when: false
   when:
       - domain_cert_file is defined
+      - domain_cert_file.stat is defined
       - domain_cert_file.stat.exists == true
       - domain_key_file is defined
+      - domain_key_file.stat is defined
       - domain_key_file.stat.exists == true
       - k3s_domain != ""
       - k3s_domain is defined
+      - k3s_haproxy_disable == false
       - k3s_install_exec == "server"
 
 # Set expected secret name for comparison
@@ -54,11 +57,14 @@
       - cert_key_secret is defined
       - cert_key_secret.rc != 0
       - domain_cert_file is defined
+      - domain_cert_file.stat is defined
       - domain_cert_file.stat.exists == true
       - domain_key_file is defined
+      - domain_key_file.stat is defined
       - domain_key_file.stat.exists == true
       - k3s_domain != ""
       - k3s_domain is defined
+      - k3s_haproxy_disable == false
       - k3s_install_exec == "server"
 
 # Upload haproxy config with jinja2 template
