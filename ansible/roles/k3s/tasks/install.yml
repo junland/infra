@@ -27,7 +27,8 @@
   command: "/tmp/k3s_install.sh server"
   environment:
       # If k3s_haproxy_disabled is false, add traefik and servicelb disable flags into INSTALL_K3S_EXEC. If true, do not add them.
-      INSTALL_K3S_EXEC: "{{ '--disable traefik --disable servicelb' if not k3s_haproxy_disable else '' }} {{ k3s_tls_san_args | default('') }}"
+      #INSTALL_K3S_EXEC: "{{ '--disable traefik --disable servicelb' if not k3s_haproxy_disable else '' }} {{ k3s_tls_san_args | default('') }}"
+      K3S_CONFIG_FILE: "/tmp/k3s-config.yaml"
       INSTALL_K3S_VERSION: "{{ k3s_install_version }}"
   args:
       creates: /usr/local/bin/k3s
