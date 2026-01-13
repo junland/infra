@@ -13,6 +13,16 @@
       k3s_tls_san_args: "--tls-san {{ k3s_tls_san_list | default([]) | join(' --tls-san ') }}"
   when: k3s_tls_san_list is defined and k3s_tls_san_list | length > 0
 
+# Add k3s-config.j2 file if it exists
+- name: Add k3s config file if it exists
+  ansible.builtin.template:
+      src: k3s-config.j2
+      dest: /tmp/k3s-config.yaml
+      mode: "0644"
+      force: true
+  when: k3s_install_exec == "server"
+  register: k3s_config_file
+
 - name: Install k3s server
   command: "/tmp/k3s_install.sh server"
   environment:
@@ -21,7 +31,9 @@
       INSTALL_K3S_VERSION: "{{ k3s_install_version }}"
   args:
       creates: /usr/local/bin/k3s
-  when: k3s_install_exec == "server"
+  when:
+      - k3s_install_exec == "server"
+      - k3s_config_file is not failed
 
 - name: Wait for node-token
   ansible.builtin.wait_for:

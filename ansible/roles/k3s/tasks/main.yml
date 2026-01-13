@@ -22,8 +22,8 @@
 - import_tasks: install.yml
 - import_tasks: configure.yml
 - import_tasks: configure-certs.yml
-- import_tasks: configure-dashboard.yml
-- import_tasks: configure-longhorn.yml
+# - import_tasks: configure-dashboard.yml
+# - import_tasks: configure-longhorn.yml
 - import_tasks: apps/configure-blue-green.yml
-- import_tasks: apps/configure-jenkins.yml
-- import_tasks: apps/configure-jellyfin.yml
+# - import_tasks: apps/configure-jenkins.yml
+# - import_tasks: apps/configure-jellyfin.yml
