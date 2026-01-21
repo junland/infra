@@ -2,6 +2,7 @@
 # Configures the k3s installation and sets up kubectl and helm
 #
 
+# Download helm installation script
 - name: Download helm installation script
   get_url:
       url: https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
@@ -9,6 +10,7 @@
       mode: "0755"
   when: k3s_install_exec == "server"
 
+# Create kubectl configuration directory
 - name: Create kubctl configuration directory
   file:
       path: /root/.kube
@@ -16,6 +18,7 @@
       mode: "0755"
   when: k3s_install_exec == "server"
 
+# Copy kubectl configuration
 - name: Copy kubectl configuration
   copy:
       src: /etc/rancher/k3s/k3s.yaml
@@ -24,18 +27,21 @@
       remote_src: true
   when: k3s_install_exec == "server"
 
+# Generate kubectl bash completion script
 - name: Generate kubectl bash completion script
   shell: kubectl completion bash > /etc/bash_completion.d/kubectl
   args:
       creates: /etc/bash_completion.d/kubectl
   when: k3s_install_exec == "server"
 
+# Install helm using the downloaded script
 - name: Install helm
   shell: /tmp/get_helm.sh
   args:
       creates: /usr/local/bin/helm
   when: k3s_install_exec == "server"
 
+# Generate helm bash completion script
 - name: Generate helm bash completion script
   shell: helm completion bash > /etc/bash_completion.d/helm
   args:
