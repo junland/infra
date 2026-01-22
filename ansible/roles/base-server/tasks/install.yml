@@ -3,14 +3,14 @@
 - name: Upgrade all packages to latest version
   ansible.builtin.package:
       name: "*"
-      state: latest
+      state: present
 
 - name: Create yum.repos.d to dnf.repos.d symlink
   ansible.builtin.file:
       src: "/etc/yum.repos.d"
       dest: "/etc/dnf.repos.d"
       state: link
-      force: yes
+      force: true
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
 
@@ -19,7 +19,7 @@
       src: "/etc/yum.repos.d"
       dest: "/etc/repos.d"
       state: link
-      force: yes
+      force: true
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
 
@@ -67,7 +67,7 @@
   ansible.builtin.package:
       name: "{{ zfs_repo_rpm_url }}"
       state: present
-      disable_gpg_check: yes
+      disable_gpg_check: true
   register: result
   until: result is succeeded
   retries: 5
@@ -96,7 +96,10 @@
       - nvidia_compute_enabled|bool
 
 - name: Rename NVIDIA repo file
-  ansible.builtin.command: mv /etc/yum.repos.d/cuda-rhel{{ ansible_distribution_major_version }}.repo {{ nvidia_repo_file_path }}
+  ansible.builtin.command: >-
+    mv /etc/yum.repos.d/cuda-rhel{{ ansible_distribution_major_version }}.repo
+    {{ nvidia_repo_file_path }}
+  changed_when: false
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - nvidia_compute_enabled|bool
@@ -117,7 +120,7 @@
       name: docker-ce
       description: Docker Stable Repository
       baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
-      gpgcheck: yes
+      gpgcheck: true
       gpgkey: https://download.docker.com/linux/centos/gpg
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
@@ -136,7 +139,7 @@
       name:
           - docker-ce
           - docker-compose-plugin
-      state: latest
+      state: present
       update_cache: true
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
@@ -146,8 +149,8 @@
 - name: Enable service and ensure it is not masked
   ansible.builtin.systemd:
       name: docker
-      enabled: yes
-      masked: no
+      enabled: true
+      masked: false
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - docker_enabled|bool
@@ -170,7 +173,7 @@
           - nmon
           - wget
           - pigz
-      state: latest
+      state: present
       update_cache: true
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
@@ -180,7 +183,7 @@
   ansible.builtin.dnf:
       name:
           - nfs-utils
-      state: latest
+      state: present
       update_cache: true
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
@@ -191,7 +194,7 @@
   ansible.builtin.dnf:
       name:
           - samba
-      state: latest
+      state: present
       update_cache: true
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']

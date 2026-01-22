@@ -1,3 +1,4 @@
+---
 #
 # Configures the k3s installation and sets up kubectl and helm
 #
@@ -36,7 +37,7 @@
 
 # Install helm using the downloaded script
 - name: Install helm
-  ansible.builtin.shell: /tmp/get_helm.sh
+  ansible.builtin.command: /tmp/get_helm.sh
   args:
       creates: /usr/local/bin/helm
   when: k3s_install_exec == "server"
@@ -51,12 +52,14 @@
 # Label agent nodes with the agent role if k3s_install_exec is "agent"
 - name: Label agent nodes
   ansible.builtin.command: kubectl label node {{ item }} node-role.kubernetes.io/agent=true --overwrite
+  changed_when: false
   loop: "{{ groups['internal_servers'] | difference([inventory_hostname]) }}"
   when: k3s_install_exec == "server"
 
 # Add helm repositories using the helm command line from a list of repos.
 - name: Add helm repositories
   ansible.builtin.command: helm repo add {{ item.name }} {{ item.url }}
+  changed_when: false
   loop:
       - name: "haproxytech"
         url: "https://haproxytech.github.io/helm-charts"
@@ -67,7 +70,7 @@
 # Check that metallb is not already installed
 - name: Check if metallb is already installed
   ansible.builtin.command: helm status -n metallb-system metallb
-  register: metallb_check
+  register: k3s_metallb_check
   failed_when: false
   changed_when: false
   when:
@@ -83,40 +86,48 @@
   when:
       - k3s_install_exec == "server"
       - k3s_metallb_ip_pool is defined and k3s_metallb_ip_pool != ""
-      - metallb_check.failed or metallb_check.stdout == ""
+      - k3s_metallb_check.failed or k3s_metallb_check.stdout == ""
 
 # Install metallb using helm if it is not already installed
 - name: Install metallb using helm
-  ansible.builtin.command: helm install --create-namespace --wait --hide-notes -n metallb-system metallb metallb/metallb
+  ansible.builtin.command: >-
+    helm install --create-namespace --wait --hide-notes -n metallb-system
+    metallb metallb/metallb
+  changed_when: false
   when:
       - k3s_install_exec == "server"
       - k3s_metallb_ip_pool is defined and k3s_metallb_ip_pool != ""
-      - metallb_check.failed or metallb_check.stdout == ""
+      - k3s_metallb_check.failed or k3s_metallb_check.stdout == ""
 
 # Apply metallb IP pool configuration
 - name: Apply metallb IP pool configuration
   ansible.builtin.command: kubectl apply -f /tmp/metallb-config.yaml
+  changed_when: false
   when:
       - k3s_install_exec == "server"
       - k3s_metallb_ip_pool is defined and k3s_metallb_ip_pool != ""
-      - metallb_check.failed or metallb_check.stdout == ""
+      - k3s_metallb_check.failed or k3s_metallb_check.stdout == ""
 
 # Check that haproxy is not already installed
 - name: Check if haproxy is already installed
   ansible.builtin.command: helm status -n haproxy-ingress haproxy
-  register: haproxy_check
+  register: k3s_haproxy_check
   failed_when: false
   changed_when: false
   when:
       - k3s_install_exec == "server"
       - k3s_metallb_ip is defined and k3s_metallb_ip != ""
-      - k3s_haproxy_disable == false
+      - k3s_haproxy_disable is not true
 
 # Install haproxy using helm if it is not already installed
 - name: Install haproxy using helm
-  ansible.builtin.command: helm install --create-namespace --wait --hide-notes -n haproxy-ingress haproxy haproxytech/kubernetes-ingress --set {{ k3s_haproxy_values }}
+  ansible.builtin.command: >-
+    helm install --create-namespace --wait --hide-notes
+    -n haproxy-ingress haproxy haproxytech/kubernetes-ingress
+    --set {{ k3s_haproxy_values }}
+  changed_when: false
   when:
       - k3s_install_exec == "server"
       - k3s_metallb_ip is defined and k3s_metallb_ip != ""
-      - haproxy_check.failed or haproxy_check.stdout == ""
-      - k3s_haproxy_disable == false
+      - k3s_haproxy_check.failed or k3s_haproxy_check.stdout == ""
+      - k3s_haproxy_disable is not true

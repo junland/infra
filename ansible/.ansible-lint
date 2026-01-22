@@ -1,0 +1,13 @@
+---
+# Ansible-lint configuration
+
+# Skip specific rules or paths
+skip_list:
+  - role-name  # Existing roles with hyphens (base-server, file-server) are intentional
+
+exclude_paths:
+  - test/test-run.yml  # Test file with intentional missing role reference
+  - roles/base-server/tasks/configure.yml  # Uses ansible.posix collection not available in CI
+
+# Offline mode - don't try to install collections
+offline: true

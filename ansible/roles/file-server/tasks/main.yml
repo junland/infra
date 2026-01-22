@@ -25,7 +25,9 @@
 
 - name: Update and upgrade system
   ansible.builtin.package:
-      update_only: yes
-      update_cache: yes
+      update_only: true
+      update_cache: true
 
-- import_tasks: configure.yml
+- name: Import configure tasks
+  ansible.builtin.import_tasks:
+      file: configure.yml
