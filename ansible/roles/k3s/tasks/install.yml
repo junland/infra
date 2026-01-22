@@ -3,7 +3,7 @@
 #
 
 - name: Download k3s installation script
-  get_url:
+  ansible.builtin.get_url:
       url: https://get.k3s.io
       dest: /tmp/k3s_install.sh
       mode: "0755"
@@ -24,7 +24,7 @@
   register: k3s_config_file
 
 - name: Install k3s server
-  command: "/tmp/k3s_install.sh server"
+  ansible.builtin.command: "/tmp/k3s_install.sh server"
   environment:
       # If k3s_haproxy_disabled is false, add traefik and servicelb disable flags into INSTALL_K3S_EXEC. If true, do not add them.
       #INSTALL_K3S_EXEC: "{{ '--disable traefik --disable servicelb' if not k3s_haproxy_disable else '' }} {{ k3s_tls_san_args | default('') }}"
@@ -79,15 +79,15 @@
       - groups['internal_servers'] | length > 0
 
 - name: Wait for k3s server to be ready
-  command: "kubectl get nodes"
-  register: server_ready
+  ansible.builtin.command: "kubectl get nodes"
+  ansible.builtin.register: server_ready
   retries: 10
   delay: 15
   until: server_ready.rc == 0
   when: k3s_install_exec == "server"
 
 - name: Install k3s agent
-  command: "/tmp/k3s_install.sh agent"
+  ansible.builtin.command: "/tmp/k3s_install.sh agent"
   environment:
       K3S_TOKEN: "{{ token }}"
       K3S_URL: "https://{{ k3s_install_url_host }}:6443"
