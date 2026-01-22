@@ -42,12 +42,12 @@
 - name: Read node-token from master
   ansible.builtin.slurp:
       src: /var/lib/rancher/k3s/server/node-token
-  register: node_token
+  register: k3s_node_token
   when: k3s_install_exec == "server"
 
 - name: Set token fact
   set_fact:
-      token: "{{ node_token['content'] | b64decode | regex_replace('\n', '') }}"
+      token: "{{ k3s_node_token['content'] | b64decode | regex_replace('\n', '') }}"
   when: k3s_install_exec == "server"
 
 - name: Display k3s token
@@ -64,10 +64,10 @@
 
 - name: Wait for k3s server to be ready
   command: kubectl get nodes
-  register: server_ready
+  register: k3s_server_ready
   retries: 10
   delay: 15
-  until: server_ready.rc == 0
+  until: k3s_server_ready.rc == 0
   when: k3s_install_exec == "server"
 
 - name: Install k3s agent
