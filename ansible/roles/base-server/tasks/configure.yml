@@ -13,7 +13,7 @@
       - not docker_testing
 
 - name: Add logrotate configurations
-  copy:
+  ansible.builtin.copy:
     src: "logrotate/logrotate-{{ item.name }}.conf"
     dest: "/etc/logrotate.d/{{ item.name }}"
     owner: root
@@ -28,7 +28,7 @@
     - { name: syslog }
 
 - name: Add rsyslog configuration
-  copy:
+  ansible.builtin.copy:
       src: rsyslog/rsyslog.conf
       dest: "/etc/rsyslog.conf"
       owner: root
@@ -42,7 +42,7 @@
       mode: "0700"
 
 - name: Add smartd configuration for rsyslog
-  copy:
+  ansible.builtin.copy:
     src: rsyslog/rsyslog-smartd.conf
     dest: "/etc/rsyslog.d/smartd.conf"
     owner: root
@@ -50,7 +50,7 @@
     force: true
 
 - name: Add limits configuration
-  copy:
+  ansible.builtin.copy:
     src: limits.conf
     dest: "/etc/security/limits.d/limits.conf"
     owner: root
@@ -58,7 +58,7 @@
     force: true
 
 - name: Add sysctl tune configuration
-  copy:
+  ansible.builtin.copy:
     src: tune-sysctl.conf
     dest: "/etc/sysctl.d/01-tune.conf"
     owner: root
@@ -66,12 +66,12 @@
     force: true
 
 - name: Apply sysctl tune
-  command: sysctl --system
+  ansible.builtin.command: sysctl --system
   when:
       - not docker_testing
 
 - name: Setup alternate SSH port
-  lineinfile:
+  ansible.builtin.lineinfile:
       dest: "/etc/ssh/sshd_config"
       regexp: "^Port"
       line: "Port {{ sshd_port }}"
@@ -79,7 +79,7 @@
       - not docker_testing
 
 - name: Add smartd configuration
-  copy:
+  ansible.builtin.copy:
       src: smartd.conf
       dest: "/etc/smartmontools/smartd.conf"
       owner: root
@@ -89,7 +89,7 @@
       - not docker_testing
 
 - name: Add new samba config file
-  copy:
+  ansible.builtin.copy:
       src: smb.conf
       dest: "/etc/samba/smb.conf"
       owner: root
@@ -99,7 +99,7 @@
       - samba_enabled|bool
 
 - name: Add new nfs config file
-  copy:
+  ansible.builtin.copy:
       src: nfs.conf
       dest: "/etc/nfs.conf"
       owner: root
@@ -109,7 +109,7 @@
       - nfs_enabled|bool
 
 - name: Create nfs-server service to nfs service symlink
-  file:
+  ansible.builtin.file:
       src: "/usr/lib/systemd/system/nfs-server.service"
       dest: "/usr/lib/systemd/system/nfs.service"
       state: link
@@ -120,7 +120,7 @@
       - nfs_enabled|bool
 
 - name: Allow nfs in firewalld
-  firewalld:
+  ansible.posix.firewalld:
       service: nfs
       permanent: yes
       immediate: yes
@@ -132,7 +132,7 @@
       - nfs_enabled|bool
 
 - name: Allow mountd in firewalld
-  firewalld:
+  ansible.posix.firewalld:
       service: mountd
       permanent: yes
       immediate: yes
@@ -144,7 +144,7 @@
       - nfs_enabled|bool
 
 - name: Allow samba in firewalld
-  firewalld:
+  ansible.posix.firewalld:
       service: samba
       permanent: yes
       immediate: yes
@@ -156,7 +156,7 @@
       - samba_enabled|bool
 
 - name: Remove unneeded services in /etc/init.d
-  file:
+  ansible.builtin.file:
       path: "/etc/init.d/{{ item }}"
       state: absent
   with_items:
@@ -177,7 +177,7 @@
       - ansible_os_family in ['Alpine']
 
 - name: Add default linux modules to load automatically in /etc/modules
-  lineinfile:
+  ansible.builtin.lineinfile:
       path: "/etc/modules"
       line: "{{ item }}"
       create: yes
@@ -191,7 +191,7 @@
       - ansible_os_family in ['Alpine']
 
 - name: Append zfs module to load automatically in /etc/modules
-  lineinfile:
+  ansible.builtin.lineinfile:
       path: "/etc/modules"
       line: "{{ item }}"
       create: yes
@@ -202,7 +202,7 @@
       - ansible_os_family in ['Alpine']
 
 - name: Add zfs-mod.conf to /etc/modprobe.d
-  copy:
+  ansible.builtin.copy:
       src: zfs-mod.conf
       dest: "/etc/modprobe.d/zfs-mod.conf"
       owner: root

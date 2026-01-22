@@ -4,7 +4,7 @@
 
 # Install iscsi-initiator-utils package
 - name: Install iscsi-initiator-utils package
-  package:
+  ansible.builtin.package:
       name: iscsi-initiator-utils
       state: present
 
@@ -17,7 +17,7 @@
 
 # Add iscsi_iname to facts
 - name: Add iscsi_iname to facts
-  set_fact:
+  ansible.builtin.set_fact:
       iscsi_iname: "{{ iscsi_iname.stdout }}"
   when:
       - iscsi_iname is defined
@@ -93,7 +93,7 @@
 
 # Upload longhorn values config with jinja2 template
 - name: Upload longhorn values config with jinja2 template
-  template:
+  ansible.builtin.template:
       src: longhorn-values.j2
       dest: /tmp/longhorn-values-config.yaml
       mode: "0644"
@@ -103,7 +103,7 @@
 
 # Upload longhorn secret with jinja2 template
 - name: Upload longhorn secret
-  template:
+  ansible.builtin.template:
       src: longhorn-secret.j2
       dest: /tmp/longhorn-secret.yaml
       mode: "0644"
