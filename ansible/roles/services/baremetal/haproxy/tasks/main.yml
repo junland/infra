@@ -2,7 +2,7 @@
 # entrypoint tasks file for role
 
 - name: Assert supported distributions and versions for this role
-  assert:
+  ansible.builtin.assert:
     that:
       - ( ansible_distribution == "RedHat" and ( ansible_distribution_major_version >= '8' )
         ) or
@@ -18,9 +18,8 @@
         )
 
 - name: Update and upgrade system
-  action: "{{ ansible_pkg_mgr }}"
-  args:
-    update_only: yes
-    update_cache: yes
+  ansible.builtin.package:
+      update_only: yes
+      update_cache: yes
 
 - import_tasks: install.yml

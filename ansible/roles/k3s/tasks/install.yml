@@ -3,24 +3,38 @@
 #
 
 - name: Download k3s installation script
-  get_url:
+  ansible.builtin.get_url:
       url: https://get.k3s.io
       dest: /tmp/k3s_install.sh
       mode: "0755"
 
 - name: Construct tls-san arguments
-  set_fact:
+  ansible.builtin.set_fact:
       k3s_tls_san_args: "--tls-san {{ k3s_tls_san_list | default([]) | join(' --tls-san ') }}"
   when: k3s_tls_san_list is defined and k3s_tls_san_list | length > 0
 
+# Add k3s-config.j2 file if it exists
+- name: Add k3s config file if it exists
+  ansible.builtin.template:
+      src: k3s-config.j2
+      dest: /tmp/k3s-config.yaml
+      mode: "0644"
+      force: true
+  when: k3s_install_exec == "server"
+  register: k3s_config_file
+
 - name: Install k3s server
-  command: /tmp/k3s_install.sh
+  ansible.builtin.command: "/tmp/k3s_install.sh server"
   environment:
-      INSTALL_K3S_EXEC: "--disable traefik --disable servicelb {{ k3s_tls_san_args }}"
+      # If k3s_haproxy_disabled is false, add traefik and servicelb disable flags into INSTALL_K3S_EXEC. If true, do not add them.
+      #INSTALL_K3S_EXEC: "{{ '--disable traefik --disable servicelb' if not k3s_haproxy_disable else '' }} {{ k3s_tls_san_args | default('') }}"
+      K3S_CONFIG_FILE: "/tmp/k3s-config.yaml"
       INSTALL_K3S_VERSION: "{{ k3s_install_version }}"
   args:
       creates: /usr/local/bin/k3s
-  when: k3s_install_exec == "server"
+  when:
+      - k3s_install_exec == "server"
+      - k3s_config_file is not failed
 
 - name: Wait for node-token
   ansible.builtin.wait_for:
@@ -46,32 +60,34 @@
   when: k3s_install_exec == "server"
 
 - name: Set token fact
-  set_fact:
+  ansible.builtin.set_fact:
       token: "{{ k3s_node_token['content'] | b64decode | regex_replace('\n', '') }}"
   when: k3s_install_exec == "server"
 
 - name: Display k3s token
-  debug:
+  ansible.builtin.debug:
       msg: "k3s token: {{ token }}"
   when: k3s_install_exec == "server"
 
 # Set token value from the first server to all other agents
 - name: Set token for agent nodes
-  set_fact:
+  ansible.builtin.set_fact:
       token: "{{ hostvars[groups['internal_servers'][0]]['token'] }}"
   when:
       - k3s_install_exec == "agent"
+      - groups['internal_servers'] is defined
+      - groups['internal_servers'] | length > 0
 
 - name: Wait for k3s server to be ready
-  command: kubectl get nodes
-  register: k3s_server_ready
+  ansible.builtin.command: "kubectl get nodes"
+  register: server_ready
   retries: 10
   delay: 15
-  until: k3s_server_ready.rc == 0
+  until: server_ready.rc == 0
   when: k3s_install_exec == "server"
 
 - name: Install k3s agent
-  command: /tmp/k3s_install.sh
+  ansible.builtin.command: "/tmp/k3s_install.sh agent"
   environment:
       K3S_TOKEN: "{{ token }}"
       K3S_URL: "https://{{ k3s_install_url_host }}:6443"
@@ -91,9 +107,9 @@
   when: k3s_install_exec == "agent"
 
 - name: Verify k3s installation
-  shell: k3s --version
+  ansible.builtin.shell: k3s --version
   register: k3s_version
   changed_when: false
 
-- debug:
+- ansible.builtin.debug:
       msg: "Installed k3s version: {{ k3s_version.stdout | regex_replace('\n', '') }}"

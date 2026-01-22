@@ -2,7 +2,7 @@
 # tasks file for nase role
 
 - name: Assert supported distributions and versions for this role
-  assert:
+  ansible.builtin.assert:
       that:
           - ( ansible_distribution == "RedHat" and ( ansible_distribution_major_version >= '8' )
             ) or
@@ -24,8 +24,7 @@
       mode: "0700"
 
 - name: Update and upgrade system
-  action: "{{ ansible_pkg_mgr }}"
-  args:
+  ansible.builtin.package:
       update_only: yes
       update_cache: yes
 

@@ -1,13 +1,12 @@
 ---
 # Run a full upgrade
 - name: Upgrade all packages to latest version
-  action: "{{ ansible_pkg_mgr }}"
-  args:
+  ansible.builtin.package:
       name: "*"
       state: latest
 
 - name: Create yum.repos.d to dnf.repos.d symlink
-  file:
+  ansible.builtin.file:
       src: "/etc/yum.repos.d"
       dest: "/etc/dnf.repos.d"
       state: link
@@ -16,7 +15,7 @@
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
 
 - name: Create yum.repos.d to repos.d symlink
-  file:
+  ansible.builtin.file:
       src: "/etc/yum.repos.d"
       dest: "/etc/repos.d"
       state: link
@@ -25,14 +24,14 @@
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
 
 - name: Check if EPEL repo is already configured
-  stat:
+  ansible.builtin.stat:
       path: "{{ epel_repo_file_path }}"
   register: epel_repofile_result
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
 
 - name: Check if Docker repo is already configured
-  stat:
+  ansible.builtin.stat:
       path: "{{ docker_repo_file_path }}"
   register: docker_repofile_result
   when:
@@ -40,22 +39,21 @@
       - docker_enabled|bool
 
 - name: Display EPEL repo URL
-  debug:
+  ansible.builtin.debug:
       msg: "EPEL ( {{ ansible_pkg_mgr }} ) repo URL: {{ epel_repo_rpm_url }}"
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - not epel_repofile_result.stat.exists
 
 - name: Import EPEL GPG key
-  rpm_key:
+  ansible.builtin.rpm_key:
       key: "{{ epel_repo_gpg_key_url }}"
       state: present
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
 
 - name: Install EPEL repo
-  action: "{{ ansible_pkg_mgr }}"
-  args:
+  ansible.builtin.package:
       name: "{{ epel_repo_rpm_url }}"
       state: present
   register: result
@@ -66,8 +64,7 @@
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
 
 - name: Install ZFS repo
-  action: "{{ ansible_pkg_mgr }}"
-  args:
+  ansible.builtin.package:
       name: "{{ zfs_repo_rpm_url }}"
       state: present
       disable_gpg_check: yes
@@ -80,15 +77,14 @@
       - zfs_enabled|bool
 
 - name: Display NVIDIA Compute repo URL
-  debug:
+  ansible.builtin.debug:
       msg: "NVIDIA Compute ( {{ ansible_pkg_mgr }} ) repo URL: {{ nvidia_compute_repo_url }}"
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - nvidia_compute_enabled|bool
 
 - name: Install NVIDIA Compute repo
-  action: "{{ ansible_pkg_mgr }}"
-  args:
+  ansible.builtin.package:
       name: "{{ nvidia_compute_repo_url }}"
       state: present
   register: result
@@ -100,14 +96,14 @@
       - nvidia_compute_enabled|bool
 
 - name: Rename NVIDIA repo file
-  command: mv /etc/yum.repos.d/cuda-rhel{{ ansible_distribution_major_version }}.repo {{ nvidia_repo_file_path }}
+  ansible.builtin.command: mv /etc/yum.repos.d/cuda-rhel{{ ansible_distribution_major_version }}.repo {{ nvidia_repo_file_path }}
   when:
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
       - nvidia_compute_enabled|bool
       - not ansible_check_mode
 
 - name: Update NVIDIA repo file with updated name
-  lineinfile:
+  ansible.builtin.lineinfile:
       path: "{{ nvidia_repo_file_path }}"
       regexp: '^name='
       line: 'name=NVIDIA'
@@ -117,7 +113,7 @@
       - not ansible_check_mode
 
 - name: Install Docker repo
-  yum_repository:
+  ansible.builtin.yum_repository:
       name: docker-ce
       description: Docker Stable Repository
       baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
@@ -128,7 +124,7 @@
       - docker_enabled|bool
 
 - name: Import Docker GPG key
-  rpm_key:
+  ansible.builtin.rpm_key:
       key: "{{ docker_repo_gpg_key_url }}"
       state: present
   when:
@@ -136,7 +132,7 @@
       - docker_enabled|bool
 
 - name: Install Docker
-  dnf:
+  ansible.builtin.dnf:
       name:
           - docker-ce
           - docker-compose-plugin
@@ -148,7 +144,7 @@
       - not ansible_check_mode
 
 - name: Enable service and ensure it is not masked
-  systemd:
+  ansible.builtin.systemd:
       name: docker
       enabled: yes
       masked: no
@@ -157,7 +153,7 @@
       - docker_enabled|bool
 
 - name: Ensure Docker service is running
-  systemd:
+  ansible.builtin.systemd:
       state: started
       name: docker
   when:
@@ -165,7 +161,7 @@
       - docker_enabled|bool
 
 - name: Install needed packages
-  dnf:
+  ansible.builtin.dnf:
       name:
           - curl
           - git
@@ -181,7 +177,7 @@
       - not ansible_check_mode
 
 - name: Install NFS Packages
-  dnf:
+  ansible.builtin.dnf:
       name:
           - nfs-utils
       state: latest
@@ -192,7 +188,7 @@
       - not ansible_check_mode
 
 - name: Install Samba Packages
-  dnf:
+  ansible.builtin.dnf:
       name:
           - samba
       state: latest
