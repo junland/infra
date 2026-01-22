@@ -24,8 +24,7 @@
       mode: "0700"
 
 - name: Update and upgrade system
-  action: "{{ ansible_pkg_mgr }}"
-  args:
+  ansible.builtin.package:
       update_only: yes
       update_cache: yes
 

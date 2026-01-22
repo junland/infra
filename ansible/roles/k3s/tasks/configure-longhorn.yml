@@ -4,20 +4,20 @@
 
 # Install iscsi-initiator-utils package
 - name: Install iscsi-initiator-utils package
-  package:
+  ansible.builtin.package:
       name: iscsi-initiator-utils
       state: present
 
 # Get initiator name from the system
 - name: Get initiator name from each system
   ansible.builtin.command: iscsi-iname
-  ansible.builtin.register: iscsi_iname
+  register: iscsi_iname
   changed_when: false
   failed_when: false
 
 # Add iscsi_iname to facts
 - name: Add iscsi_iname to facts
-  set_fact:
+  ansible.builtin.set_fact:
       iscsi_iname: "{{ iscsi_iname.stdout }}"
   when:
       - iscsi_iname is defined
@@ -43,7 +43,7 @@
 # Add longhorn helm repository
 - name: Add longhorn helm repository
   ansible.builtin.command: helm repo add longhorn https://charts.longhorn.io
-  ansible.builtin.register: longhorn_repo_add
+  register: longhorn_repo_add
   failed_when: false
   changed_when: false
   when:
@@ -52,7 +52,7 @@
 # Check if longhorn namespace exists
 - name: Check if longhorn namespace exists
   ansible.builtin.command: kubectl get namespace longhorn-system
-  ansible.builtin.register: longhorn_namespace_check
+  register: longhorn_namespace_check
   failed_when: false
   changed_when: false
   when:
@@ -62,7 +62,7 @@
 # Create longhorn namespace if it does not exist
 - name: Create longhorn namespace if it does not exist
   ansible.builtin.command: kubectl create namespace longhorn-system
-  ansible.builtin.register: longhorn_namespace_create
+  register: longhorn_namespace_create
   failed_when: false
   changed_when: false
   when:
@@ -73,7 +73,7 @@
 # Check if longhorn is already installed
 - name: Check if longhorn is already installed
   ansible.builtin.command: helm status -n longhorn-system longhorn
-  ansible.builtin.register: longhorn_check
+  register: longhorn_check
   failed_when: false
   changed_when: false
   when:
@@ -83,7 +83,7 @@
 # Generate longhorn auth-basic password
 - name: Generate longhorn auth-basic password
   ansible.builtin.shell: echo "{{ k3s_longhorn_password }}" | openssl passwd -stdin -1
-  ansible.builtin.register: longhorn_auth_basic_password
+  register: longhorn_auth_basic_password
   failed_when: false
   changed_when: false
   when:
@@ -93,7 +93,7 @@
 
 # Upload longhorn values config with jinja2 template
 - name: Upload longhorn values config with jinja2 template
-  template:
+  ansible.builtin.template:
       src: longhorn-values.j2
       dest: /tmp/longhorn-values-config.yaml
       mode: "0644"
@@ -103,7 +103,7 @@
 
 # Upload longhorn secret with jinja2 template
 - name: Upload longhorn secret
-  template:
+  ansible.builtin.template:
       src: longhorn-secret.j2
       dest: /tmp/longhorn-secret.yaml
       mode: "0644"

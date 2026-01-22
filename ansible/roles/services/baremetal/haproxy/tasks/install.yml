@@ -1,6 +1,6 @@
 ---
 - name: Install haproxy package
-  dnf:
+  ansible.builtin.dnf:
       name:
           - haproxy
       state: latest
@@ -9,7 +9,7 @@
       - ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
 
 - name: Create needed directories
-  file:
+  ansible.builtin.file:
     path: "{{ item.path }}"
     state: directory
   when: item.when|bool == true
@@ -20,7 +20,7 @@
     - { path: /etc/haproxy/maps, when: true }
 
 - name: Add service file
-  copy:
+  ansible.builtin.copy:
     src: haproxy.service
     dest: "/usr/lib/systemd/system/haproxy.service"
     owner: root
@@ -28,19 +28,19 @@
   when: ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
 
 - name: Remove default configuration file
-  file:
+  ansible.builtin.file:
     state: absent
     path: "/etc/haproxy/haproxy.cfg"
 
 - name: Add configuration file
-  copy:
+  ansible.builtin.copy:
     src: haproxy.conf
     dest: "/etc/haproxy/haproxy.conf"
     owner: root
     group: root
 
 - name: Add rsyslog specific configuration
-  copy:
+  ansible.builtin.copy:
     src: haproxy-rsyslog.conf
     dest: "/etc/rsyslog.d/haproxy.conf"
     owner: root
@@ -48,5 +48,5 @@
   when: ansible_os_family in ['RedHat', 'CentOS', 'Rocky']
 
 - name: Reload systemd
-  systemd:
+  ansible.builtin.systemd:
     daemon_reload: yes
