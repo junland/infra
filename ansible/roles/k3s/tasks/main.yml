@@ -16,14 +16,25 @@
 
 - name: Refresh system repos
   ansible.builtin.package:
-      update_only: yes
-      update_cache: yes
+      update_only: true
+      update_cache: true
 
-- import_tasks: install.yml
-- import_tasks: configure.yml
-- import_tasks: configure-certs.yml
+- name: Import install tasks
+  ansible.builtin.import_tasks:
+      file: install.yml
+
+- name: Import configure tasks
+  ansible.builtin.import_tasks:
+      file: configure.yml
+
+- name: Import configure-certs tasks
+  ansible.builtin.import_tasks:
+      file: configure-certs.yml
 # - import_tasks: configure-dashboard.yml
 # - import_tasks: configure-longhorn.yml
-- import_tasks: apps/configure-blue-green.yml
+
+- name: Import configure-blue-green tasks
+  ansible.builtin.import_tasks:
+      file: apps/configure-blue-green.yml
 # - import_tasks: apps/configure-jenkins.yml
 # - import_tasks: apps/configure-jellyfin.yml
