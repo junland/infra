@@ -67,7 +67,7 @@
 # Check that metallb is not already installed
 - name: Check if metallb is already installed
   ansible.builtin.command: helm status -n metallb-system metallb
-  ansible.builtin.register: metallb_check
+  register: metallb_check
   failed_when: false
   changed_when: false
   when:
@@ -104,7 +104,7 @@
 # Check that haproxy is not already installed
 - name: Check if haproxy is already installed
   ansible.builtin.command: helm status -n haproxy-ingress haproxy
-  ansible.builtin.register: haproxy_check
+  register: haproxy_check
   failed_when: false
   changed_when: false
   when:

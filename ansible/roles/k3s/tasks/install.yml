@@ -80,7 +80,7 @@
 
 - name: Wait for k3s server to be ready
   ansible.builtin.command: "kubectl get nodes"
-  ansible.builtin.register: server_ready
+  register: server_ready
   retries: 10
   delay: 15
   until: server_ready.rc == 0

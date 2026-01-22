@@ -5,7 +5,7 @@
 # Add kubernetes dashboard helm repository
 - name: Add Kubernetes dashboard helm repository
   ansible.builtin.command: helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
-  ansible.builtin.register: dashboard_repo_add
+  register: dashboard_repo_add
   failed_when: false
   changed_when: false
   when:
@@ -14,7 +14,7 @@
 # Check if Kubernetes dashboard is already installed
 - name: Check if Kubernetes dashboard is already installed
   ansible.builtin.command: helm status -n kubernetes-dashboard kubernetes-dashboard
-  ansible.builtin.register: dashboard_check
+  register: dashboard_check
   failed_when: false
   changed_when: false
   when:
