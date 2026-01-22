@@ -1,7 +1,7 @@
 ---
 # Create needed zfs directories
 - name: Create needed directories for mounting with nas_dirs
-  file:
+  ansible.builtin.file:
       path: "{{ item }}"
       state: directory
       owner: root
@@ -12,7 +12,7 @@
       - not ansible_check_mode
 
 - name: Setup ZFS mountpoints
-  command: "{{item}}"
+  ansible.builtin.command: "{{item}}"
   loop:
       - "zfs set mountpoint={{ file_server_mount_dir }} {{ file_server_main_pool }}"
       - "zfs set canmount=on {{ file_server_main_pool }}"
@@ -21,12 +21,12 @@
       - not docker_testing
 
 - name: Set ACL type for main pool
-  command: "zfs set acltype=posixacl {{ file_server_main_pool }}"
+  ansible.builtin.command: "zfs set acltype=posixacl {{ file_server_main_pool }}"
   when:
       - not docker_testing
 
 - name: Enable needed ZFS services
-  systemd:
+  ansible.builtin.systemd:
       name: "{{ item }}"
       enabled: yes
   with_items:
@@ -41,7 +41,7 @@
       - not docker_testing
 
 - name: Install gen-backup script
-  copy:
+  ansible.builtin.copy:
       src: "{{ scripts_dir }}/gen-backup"
       dest: "/usr/local/bin/gen-backup"
       owner: root
@@ -50,7 +50,7 @@
       force: true
 
 - name: Add daily gen-zfs-snapshot cron script
-  copy:
+  ansible.builtin.copy:
       src: "{{ scripts_dir }}/gen-zfs-snapshots"
       dest: "/etc/cron.daily/cron-gen-zfs-snapshots"
       owner: root
@@ -59,7 +59,7 @@
       force: true
 
 - name: Install prune-zfs-snapshots script
-  copy:
+  ansible.builtin.copy:
       src: "{{ scripts_dir }}/prune-zfs-snapshots"
       dest: "/usr/sbin/prune-zfs-snapshots"
       owner: root
