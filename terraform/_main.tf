@@ -10,9 +10,9 @@ terraform {
       version = "~> 3"
     }
 
-    digitalocean = {
-      source  = "digitalocean/digitalocean"
-      version = "~> 2"
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 3"
     }
   }
 }
@@ -26,6 +26,12 @@ provider "http" {
 
 }
 
-provider "digitalocean" {
-  token = var.do_api_token
+provider "kubernetes" {
+  config_path = "~/.kube/config"
+}
+
+resource "kubernetes_namespace_v1" "test" {
+  metadata {
+    name = "nginx"
+  }
 }

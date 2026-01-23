@@ -26,15 +26,3 @@
 - name: Import configure tasks
   ansible.builtin.import_tasks:
       file: configure.yml
-
-- name: Import configure-certs tasks
-  ansible.builtin.import_tasks:
-      file: configure-certs.yml
-# - import_tasks: configure-dashboard.yml
-# - import_tasks: configure-longhorn.yml
-
-- name: Import configure-blue-green tasks
-  ansible.builtin.import_tasks:
-      file: apps/configure-blue-green.yml
-# - import_tasks: apps/configure-jenkins.yml
-# - import_tasks: apps/configure-jellyfin.yml

@@ -116,3 +116,41 @@
 - name: Display installed k3s version
   ansible.builtin.debug:
       msg: "Installed k3s version: {{ k3s_version.stdout | regex_replace('\n', '') }}"
+
+# Install iscsi-initiator-utils package
+- name: Install iscsi-initiator-utils package
+  ansible.builtin.package:
+      name: iscsi-initiator-utils
+      state: present
+
+# Get initiator name from the system
+- name: Get initiator name from each system
+  ansible.builtin.command: iscsi-iname
+  register: k3s_iscsi_iname
+  changed_when: false
+  failed_when: false
+
+# Add iscsi_iname to facts
+- name: Add iscsi_iname to facts
+  ansible.builtin.set_fact:
+      k3s_iscsi_iname: "{{ k3s_iscsi_iname.stdout }}"
+  when:
+      - k3s_iscsi_iname is defined
+      - k3s_iscsi_iname.stdout != ""
+
+# Write iscsi_iname to /etc/iscsi/initiatorname.iscsi
+- name: Write iscsi_iname to /etc/iscsi/initiatorname.iscsi
+  ansible.builtin.copy:
+      content: 'InitiatorName="{{ k3s_iscsi_iname }}"'
+      dest: /etc/iscsi/initiatorname.iscsi
+      mode: "0644"
+  when:
+      - k3s_iscsi_iname is defined
+      - k3s_iscsi_iname != ""
+
+# Ensure iscsi service is enabled and started
+- name: Ensure iscsi service is enabled and started
+  ansible.builtin.systemd:
+      name: iscsid
+      state: started
+      enabled: true

@@ -6,6 +6,6 @@ tls-san:
   - "{{ san }}"
 {% endfor %}
 disable:
-  - "{{ 'traefik' if not k3s_haproxy_disable else '' }}"
-  - "{{ 'servicelb' if not k3s_haproxy_disable else '' }}"
+  - 'servicelb'  # Disable default servicelb to use HAProxy or MetalLB
+  - 'traefik'    # Disable default traefik to use HAProxy
 cluster-init: "{{ 'true' if k3s_install_exec == 'server' and inventory_hostname == groups['internal_servers'][0] else 'false' }}"
