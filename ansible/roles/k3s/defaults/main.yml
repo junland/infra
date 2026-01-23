@@ -14,4 +14,4 @@ k3s_install_version: "v1.34.2+k3s1"
 
 k3s_domain: "kube.local"
 
-k3s_domain_tls_secret_name: "haproxy-kubernetes-ingress-default-cert"
+k3s_domain_tls_secret_name: "ingress-system-default-cert"
