@@ -3,12 +3,14 @@
 # Install k3s on the target node(s)
 #
 
+# Download the k3s installation script on the target node(s)
 - name: Download k3s installation script
   ansible.builtin.get_url:
       url: https://get.k3s.io
       dest: /tmp/k3s_install.sh
       mode: "0755"
 
+# Set the tls-san arguments if k3s_tls_san_list is defined
 - name: Construct tls-san arguments
   ansible.builtin.set_fact:
       k3s_tls_san_args: "--tls-san {{ k3s_tls_san_list | default([]) | join(' --tls-san ') }}"
