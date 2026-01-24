@@ -14,6 +14,11 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = "~> 3"
     }
+
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 3"
+    }
   }
 }
 
@@ -27,11 +32,11 @@ provider "http" {
 }
 
 provider "kubernetes" {
-  config_path = "~/.kube/config"
+  config_path = var.kube_config_path
 }
 
-resource "kubernetes_namespace_v1" "test" {
-  metadata {
-    name = "nginx"
+provider "helm" {
+  kubernetes = {
+    config_path = var.kube_config_path
   }
 }

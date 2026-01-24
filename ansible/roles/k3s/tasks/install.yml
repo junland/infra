@@ -24,6 +24,7 @@
   when: k3s_install_exec == "server"
   register: k3s_config_file
 
+# Install k3s server using the installation script
 - name: Install k3s server
   ansible.builtin.command: "/tmp/k3s_install.sh server"
   environment:
@@ -37,34 +38,40 @@
       - k3s_install_exec == "server"
       - k3s_config_file is not failed
 
+# Wait for the node-token file to be created
 - name: Wait for node-token
   ansible.builtin.wait_for:
       path: /var/lib/rancher/k3s/server/node-token
   when: k3s_install_exec == "server"
 
+# Register the node-token file on the server
 - name: Register node-token file access mode
   ansible.builtin.stat:
       path: /var/lib/rancher/k3s/server
   register: k3s_p
   when: k3s_install_exec == "server"
 
+# Change file access node-token to be readable by others
 - name: Change file access node-token
   ansible.builtin.file:
       path: /var/lib/rancher/k3s/server
       mode: g+rx,o+rx
   when: k3s_install_exec == "server"
 
-- name: Read node-token from master
+# Read the node-token from the server node
+- name: Read node-token from server node
   ansible.builtin.slurp:
       src: /var/lib/rancher/k3s/server/node-token
   register: k3s_k3s_node_token
   when: k3s_install_exec == "server"
 
+# Set k3s_token fact from the node-token content
 - name: Set token fact
   ansible.builtin.set_fact:
       k3s_token: "{{ k3s_k3s_node_token['content'] | b64decode | regex_replace('\n', '') }}"
   when: k3s_install_exec == "server"
 
+# Display k3s token
 - name: Display k3s token
   ansible.builtin.debug:
       msg: "k3s token: {{ k3s_token }}"
@@ -79,6 +86,7 @@
       - groups['internal_servers'] is defined
       - groups['internal_servers'] | length > 0
 
+# Verify that k3s-server service is running
 - name: Wait for k3s server to be ready
   ansible.builtin.command: "kubectl get nodes"
   changed_when: false
@@ -88,6 +96,7 @@
   until: k3s_server_ready.rc == 0
   when: k3s_install_exec == "server"
 
+# Install k3s agent
 - name: Install k3s agent
   ansible.builtin.command: "/tmp/k3s_install.sh agent"
   environment:
@@ -108,11 +117,13 @@
       enabled: true
   when: k3s_install_exec == "agent"
 
+# Verify that k3s-server service is running
 - name: Verify k3s installation
   ansible.builtin.command: k3s --version
   register: k3s_version
   changed_when: false
 
+# Display installed k3s version
 - name: Display installed k3s version
   ansible.builtin.debug:
       msg: "Installed k3s version: {{ k3s_version.stdout | regex_replace('\n', '') }}"
