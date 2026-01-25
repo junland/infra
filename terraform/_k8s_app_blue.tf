@@ -1,11 +1,4 @@
-resource "kubernetes_namespace_v1" "test" {
-  metadata {
-    name = "nginx"
-  }
-}
-
-# Deployment for blue
-resource "kubernetes_deployment" "test_app_blue" {
+resource "kubernetes_deployment_v1" "test_app_blue" {
   metadata {
     name = "test-app-blue"
     labels = {
@@ -70,8 +63,7 @@ resource "kubernetes_deployment" "test_app_blue" {
   }
 }
 
-# Service for blue
-resource "kubernetes_service" "svc_blue" {
+resource "kubernetes_service_v1" "test_app_blue" {
   metadata {
     name = "svc-blue"
     labels = {
@@ -80,21 +72,20 @@ resource "kubernetes_service" "svc_blue" {
   }
 
   spec {
-    selector = {
-      app   = "test-app"
-      color = "blue"
-    }
-
     port {
       port        = 80
       protocol    = "TCP"
       target_port = 8080
     }
+
+    selector = {
+      app   = "test-app"
+      color = "blue"
+    }
   }
 }
 
-# Ingress for blue
-resource "kubernetes_ingress_v1" "lb_ingress_blue" {
+resource "kubernetes_ingress_v1" "test_app_blue" {
   metadata {
     name = "lb-ingress-blue"
   }
@@ -112,7 +103,7 @@ resource "kubernetes_ingress_v1" "lb_ingress_blue" {
 
           backend {
             service {
-              name = kubernetes_service.svc_blue.metadata[0].name
+              name = "svc-blue"
               port {
                 number = 80
               }

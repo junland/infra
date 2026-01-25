@@ -1,7 +1,32 @@
-resource "helm_release" "haproxy_ingress" {
-  name       = "haproxy-kubernetes-ingress"
+resource "kubernetes_namespace_v1" "ingress_system" {
+  metadata {
+    name = "ingress-system"
+  }
+}
+
+resource "helm_release" "ingress" {
+  name       = "haproxy-ingress-controller"
   repository = "https://haproxytech.github.io/helm-charts"
-  chart      = "haproxy-ingress-controller"
+  chart      = "kubernetes-ingress"
+  namespace  = kubernetes_namespace_v1.ingress_system.metadata[0].name
+  replace    = true
+
+  set = [
+    {
+      name  = "controller.service.type"
+      value = "LoadBalancer"
+    },
+    {
+      name  = "controller.daemonset.useHostPort"
+      value = "true"
+    },
+    {
+      name  = "controller.service.loadBalancerIP"
+      value = var.k3s_loadbalancer_ip
+    }
+  ]
+
+  depends_on = [kubernetes_namespace_v1.ingress_system, helm_release.loadbalancer]
 }
 
 

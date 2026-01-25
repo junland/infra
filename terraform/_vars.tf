@@ -24,9 +24,9 @@ variable "primary_zone_name" {
 }
 
 variable "kube_config_path" {
-    type = string
-    description = "Location for kubectl config."
-    default = "~/.kube/config"
+  type        = string
+  description = "Location for kubectl config."
+  default     = "~/.kube/config"
 }
 
 variable "primary_hosts" {
@@ -37,4 +37,14 @@ variable "primary_hosts" {
     wildcard = optional(bool, false)
   }))
   description = "Hosts within the primary zone."
+}
+
+variable "k3s_loadbalancer_ip" {
+  type        = string
+  description = "Static IP for the K3s LoadBalancer Service."
+}
+
+variable "k3s_loadbalancer_pool" {
+  type        = string
+  description = "IP address pool for the K3s LoadBalancer Service."
 }
