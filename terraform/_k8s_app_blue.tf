@@ -12,6 +12,7 @@ resource "kubernetes_deployment_v1" "test_app_blue" {
 
     selector {
       match_labels = {
+        app   = "test-app"
         color = "blue"
       }
     }
@@ -66,6 +67,7 @@ resource "kubernetes_deployment_v1" "test_app_blue" {
 resource "kubernetes_service_v1" "test_app_blue" {
   metadata {
     name = "svc-blue"
+
     labels = {
       color = "blue"
     }
@@ -88,10 +90,34 @@ resource "kubernetes_service_v1" "test_app_blue" {
 resource "kubernetes_ingress_v1" "test_app_blue" {
   metadata {
     name = "lb-ingress-blue"
+
+    annotations = {
+      "cert-manager.io/cluster-issuer" = "letsencrypt-prod"
+    }
   }
 
   spec {
     ingress_class_name = "haproxy"
+
+    rule {
+      host = "blue.${var.cert_manager_domain}"
+
+      http {
+        path {
+          path      = "/"
+          path_type = "Prefix"
+
+          backend {
+            service {
+              name = "svc-blue"
+              port {
+                number = 80
+              }
+            }
+          }
+        }
+      }
+    }
 
     rule {
       host = "blue.local"
@@ -112,5 +138,11 @@ resource "kubernetes_ingress_v1" "test_app_blue" {
         }
       }
     }
+
+    tls {
+      hosts       = ["blue.${var.cert_manager_domain}"]
+      secret_name = "blue-tls-secret"
+    }
   }
+
 }

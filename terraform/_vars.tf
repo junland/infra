@@ -48,3 +48,13 @@ variable "k3s_loadbalancer_pool" {
   type        = string
   description = "IP address pool for the K3s LoadBalancer Service."
 }
+
+variable "cert_manager_email" {
+  type        = string
+  description = "Email address for Let's Encrypt certificate notifications."
+}
+
+variable "cert_manager_domain" {
+  type        = string
+  description = "Domain name for Let's Encrypt certificates."
+}
