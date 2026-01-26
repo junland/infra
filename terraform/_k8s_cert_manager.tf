@@ -71,6 +71,9 @@ resource "helm_release" "cert_manager_cluster_issuer" {
                       }
                     }
                   }
+                  selector = {
+                    dnsZones = [var.primary_zone_name]
+                  }
                 }
               ]
             }
@@ -99,6 +102,9 @@ resource "helm_release" "cert_manager_cluster_issuer" {
                       }
                     }
                   }
+                  selector = {
+                    dnsZones = [var.primary_zone_name]
+                  }
                 }
               ]
             }
@@ -110,3 +116,41 @@ resource "helm_release" "cert_manager_cluster_issuer" {
 
   depends_on = [helm_release.cert_manager, kubernetes_secret_v1.cloudflare_api_token]
 }
+
+# Example Certificate resource for wildcard domain
+# Uncomment and customize this resource to issue wildcard certificates
+# resource "helm_release" "cert_manager_wildcard_certificate" {
+#   name       = "wildcard-certificate"
+#   repository = "https://bedag.github.io/helm-charts/"
+#   chart      = "raw"
+#   namespace  = kubernetes_namespace_v1.cert_manager.metadata[0].name
+#   replace    = true
+#
+#   values = [
+#     yamlencode({
+#       resources = [
+#         {
+#           apiVersion = "cert-manager.io/v1"
+#           kind       = "Certificate"
+#           metadata = {
+#             name      = "wildcard-${replace(var.primary_zone_name, ".", "-")}"
+#             namespace = kubernetes_namespace_v1.cert_manager.metadata[0].name
+#           }
+#           spec = {
+#             secretName = "wildcard-${replace(var.primary_zone_name, ".", "-")}-tls"
+#             issuerRef = {
+#               name = "letsencrypt-prod"
+#               kind = "ClusterIssuer"
+#             }
+#             dnsNames = [
+#               var.primary_zone_name,
+#               "*.${var.primary_zone_name}"
+#             ]
+#           }
+#         }
+#       ]
+#     })
+#   ]
+#
+#   depends_on = [helm_release.cert_manager_cluster_issuer]
+# }
