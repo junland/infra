@@ -23,12 +23,6 @@ variable "primary_zone_name" {
   description = "Name of the primary zone."
 }
 
-variable "kube_config_path" {
-  type        = string
-  description = "Location for kubectl config."
-  default     = "~/.kube/config"
-}
-
 variable "primary_hosts" {
   type = list(object({
     name     = string
@@ -37,6 +31,12 @@ variable "primary_hosts" {
     wildcard = optional(bool, false)
   }))
   description = "Hosts within the primary zone."
+}
+
+variable "kube_config_path" {
+  type        = string
+  description = "Location for kubectl config."
+  default     = "~/.kube/config"
 }
 
 variable "k3s_loadbalancer_ip" {
