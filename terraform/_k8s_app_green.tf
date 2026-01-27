@@ -100,27 +100,7 @@ resource "kubernetes_ingress_v1" "test_app_green" {
     ingress_class_name = "haproxy"
 
     rule {
-      host = "green.local"
-
-      http {
-        path {
-          path      = "/"
-          path_type = "Prefix"
-
-          backend {
-            service {
-              name = "svc-green"
-              port {
-                number = 80
-              }
-            }
-          }
-        }
-      }
-    }
-
-    rule {
-      host = "green.local"
+      host = "green.${var.cert_manager_domain}"
 
       http {
         path {

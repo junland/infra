@@ -120,26 +120,6 @@ resource "kubernetes_ingress_v1" "test_app_blue" {
       }
     }
 
-    rule {
-      host = "blue.local"
-
-      http {
-        path {
-          path      = "/"
-          path_type = "Prefix"
-
-          backend {
-            service {
-              name = "svc-blue"
-              port {
-                number = 80
-              }
-            }
-          }
-        }
-      }
-    }
-
     tls {
       hosts       = ["*.${var.cert_manager_domain}"]
       secret_name = "wildcard-cert"
