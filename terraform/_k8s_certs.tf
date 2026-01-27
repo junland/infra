@@ -13,7 +13,7 @@ resource "kubernetes_secret_v1" "cloudflare_api_token" {
   }
 
   data = {
-    api-token = var.cf_api_token
+    api-token = sensitive(var.cf_api_token)
   }
 
   type = "Opaque"
@@ -60,10 +60,12 @@ resource "helm_release" "cert_manager_cluster_issuer" {
               }
               solvers = [
                 {
-                  cloudflare = {
-                    apiTokenSecretRef = {
-                      name = kubernetes_secret_v1.cloudflare_api_token.metadata[0].name
-                      key  = "api-token"
+                  dns01 = {
+                    cloudflare = {
+                      apiTokenSecretRef = {
+                        name = kubernetes_secret_v1.cloudflare_api_token.metadata[0].name
+                        key  = "api-token"
+                      }
                     }
                   }
                 }
