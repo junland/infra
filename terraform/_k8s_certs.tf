@@ -43,6 +43,7 @@ resource "helm_release" "cert_manager_cluster_issuer" {
   chart      = "raw"
   namespace  = kubernetes_namespace_v1.cert_manager.metadata[0].name
   replace    = true
+  version    = "2.0.2"
 
   values = [
     yamlencode({
