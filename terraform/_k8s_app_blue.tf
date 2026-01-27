@@ -1,6 +1,7 @@
 resource "kubernetes_deployment_v1" "test_app_blue" {
   metadata {
     name = "test-app-blue"
+
     labels = {
       app   = "test-app"
       color = "blue"

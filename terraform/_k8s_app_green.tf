@@ -1,6 +1,7 @@
 resource "kubernetes_deployment_v1" "test_app_green" {
   metadata {
     name = "test-app-green"
+
     labels = {
       app   = "test-app"
       color = "green"
@@ -66,6 +67,7 @@ resource "kubernetes_deployment_v1" "test_app_green" {
 resource "kubernetes_service_v1" "test_app_green" {
   metadata {
     name = "svc-green"
+
     labels = {
       color = "green"
     }
@@ -88,6 +90,10 @@ resource "kubernetes_service_v1" "test_app_green" {
 resource "kubernetes_ingress_v1" "test_app_green" {
   metadata {
     name = "lb-ingress-green"
+
+    annotations = {
+      "cert-manager.io/cluster-issuer" = "letsencrypt-prod"
+    }
   }
 
   spec {
