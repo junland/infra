@@ -112,5 +112,30 @@ resource "kubernetes_ingress_v1" "test_app_green" {
         }
       }
     }
+
+    rule {
+      host = "green.local"
+
+      http {
+        path {
+          path      = "/"
+          path_type = "Prefix"
+
+          backend {
+            service {
+              name = "svc-green"
+              port {
+                number = 80
+              }
+            }
+          }
+        }
+      }
+    }
+
+    tls {
+      hosts       = ["green.${var.cert_manager_domain}"]
+      secret_name = "green-tls-secret"
+    }
   }
 }
