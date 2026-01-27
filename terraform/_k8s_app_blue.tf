@@ -142,7 +142,7 @@ resource "kubernetes_ingress_v1" "test_app_blue" {
 
     tls {
       hosts       = ["blue.${var.cert_manager_domain}"]
-      secret_name = "blue-tls-secret"
+      secret_name = "wildcard-cert"
     }
   }
 

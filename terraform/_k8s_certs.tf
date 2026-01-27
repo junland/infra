@@ -17,8 +17,6 @@ resource "kubernetes_secret_v1" "cloudflare_api_token" {
   }
 
   type = "Opaque"
-
-  depends_on = [kubernetes_namespace_v1.cert_manager]
 }
 
 # Install cert-manager helm chart
@@ -36,14 +34,13 @@ resource "helm_release" "cert_manager" {
   depends_on = [kubernetes_namespace_v1.cert_manager]
 }
 
-# Create ClusterIssuer for Let's Encrypt with Cloudflare DNS01 challenge
 resource "helm_release" "cert_manager_cluster_issuer" {
   name       = "cert-manager-cluster-issuer"
   repository = "https://bedag.github.io/helm-charts/"
   chart      = "raw"
   namespace  = kubernetes_namespace_v1.cert_manager.metadata[0].name
-  replace    = true
   version    = "2.0.2"
+  replace    = true
 
   values = [
     yamlencode({
@@ -52,36 +49,52 @@ resource "helm_release" "cert_manager_cluster_issuer" {
           apiVersion = "cert-manager.io/v1"
           kind       = "ClusterIssuer"
           metadata = {
-            name = "letsencrypt-prod"
+            name = "letsencrypt-dns"
           }
           spec = {
             acme = {
               server = "https://acme-v02.api.letsencrypt.org/directory"
               email  = var.cert_manager_email
               privateKeySecretRef = {
-                name = "letsencrypt-prod-account-key"
+                name = "letsencrypt-key-pair"
               }
               solvers = [
                 {
-                  dns01 = {
-                    cloudflare = {
-                      apiTokenSecretRef = {
-                        name = kubernetes_secret_v1.cloudflare_api_token.metadata[0].name
-                        key  = "api-token"
-                      }
+                  cloudflare = {
+                    apiTokenSecretRef = {
+                      name = kubernetes_secret_v1.cloudflare_api_token.metadata[0].name
+                      key  = "api-token"
                     }
-                  }
-                  selector = {
-                    dnsZones = ["*.${var.cert_manager_domain}"]
                   }
                 }
               ]
             }
           }
         },
+        {
+          apiVersion = "cert-manager.io/v1"
+          kind       = "Certificate"
+          metadata = {
+            name      = "wildcard-cert"
+            namespace = kubernetes_namespace_v1.cert_manager.metadata[0].name
+          }
+          spec = {
+            dnsNames = [
+              "*.${var.cert_manager_domain}"
+            ]
+            issuerRef = {
+              name = "letsencrypt-dns"
+              kind = "ClusterIssuer"
+            }
+            secretName = "wildcard-cert-tls"
+            commonName = "*.${var.cert_manager_domain}"
+          }
+        }
       ]
     })
   ]
 
-  depends_on = [helm_release.cert_manager, kubernetes_secret_v1.cloudflare_api_token]
+  depends_on = [helm_release.cert_manager]
 }
+
+
