@@ -93,7 +93,7 @@ resource "kubernetes_ingress_v1" "test_app_blue" {
     name = "lb-ingress-blue"
 
     annotations = {
-      "cert-manager.io/cluster-issuer" = "letsencrypt-prod"
+      "cert-manager.io/cluster-issuer" = "letsencrypt-dns"
     }
   }
 
@@ -141,7 +141,7 @@ resource "kubernetes_ingress_v1" "test_app_blue" {
     }
 
     tls {
-      hosts       = ["blue.${var.cert_manager_domain}"]
+      hosts       = ["*.${var.cert_manager_domain}"]
       secret_name = "wildcard-cert"
     }
   }
