@@ -19,6 +19,7 @@ resource "helm_release" "loadbalancer_crds" {
   chart      = "raw"
   namespace  = kubernetes_namespace_v1.loadbalancer_system.metadata[0].name
   replace    = true
+  version    = "2.0.2"
 
   values = [
     yamlencode({
