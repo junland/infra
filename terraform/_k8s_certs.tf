@@ -82,14 +82,14 @@ resource "helm_release" "cert_manager_cluster_issuer" {
           }
           spec = {
             dnsNames = [
-              "*.${var.cert_manager_domain}"
+              local.wildcard_host
             ]
             issuerRef = {
               name = "letsencrypt-dns"
               kind = "ClusterIssuer"
             }
             secretName = "wildcard-cert-tls"
-            commonName = "*.${var.cert_manager_domain}"
+            commonName = local.wildcard_host
           }
         }
       ]
