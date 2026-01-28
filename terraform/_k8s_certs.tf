@@ -54,7 +54,7 @@ resource "helm_release" "cert_manager_cluster_issuer" {
           spec = {
             acme = {
               server = "https://acme-v02.api.letsencrypt.org/directory"
-              email  = var.cert_manager_email
+              email  = var.k3s_cert_manager_email
               privateKeySecretRef = {
                 name = "letsencrypt-key-pair"
               }

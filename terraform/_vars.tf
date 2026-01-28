@@ -18,12 +18,12 @@ variable "do_api_token" {
   description = "API token generated from Digital Ocean."
 }
 
-variable "primary_zone_name" {
+variable "cf_primary_zone_name" {
   type        = string
   description = "Name of the primary zone."
 }
 
-variable "primary_hosts" {
+variable "cf_primary_hosts" {
   type = list(object({
     name     = string
     ip       = string
@@ -49,12 +49,12 @@ variable "k3s_loadbalancer_pool" {
   description = "IP address pool for the K3s LoadBalancer Service."
 }
 
-variable "cert_manager_email" {
+variable "k3s_cert_manager_email" {
   type        = string
   description = "Email address for Let's Encrypt certificate notifications."
 }
 
-variable "cert_manager_domain" {
+variable "k3s_cert_manager_domain" {
   type        = string
   description = "Domain name for Let's Encrypt certificates."
 }

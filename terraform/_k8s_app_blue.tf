@@ -101,7 +101,7 @@ resource "kubernetes_ingress_v1" "test_app_blue" {
     ingress_class_name = "haproxy"
 
     rule {
-      host = "blue.${var.cert_manager_domain}"
+      host = "blue.${var.k3s_cert_manager_domain}"
 
       http {
         path {
