@@ -28,10 +28,8 @@ resource "helm_release" "longhorn" {
         tls              = true
         tlsSecretName    = local.wildcard_secret_name
         annotations = {
-          "cert-manager.io/cluster-issuer"    = local.wildcard_cluster_issuer_name
-          "ingress.kubernetes.io/auth-type"   = "basic-auth"
-          "ingress.kubernetes.io/auth-secret" = "basic-auth"
-          "ingress.kubernetes.io/auth-realm"  = "Authentication Required"
+          "cert-manager.io/cluster-issuer" = local.wildcard_cluster_issuer_name
+          "haproxy.org/ingress.class"      = "haproxy"
         }
       }
     })
