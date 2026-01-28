@@ -49,7 +49,7 @@ resource "helm_release" "cert_manager_cluster_issuer" {
           apiVersion = "cert-manager.io/v1"
           kind       = "ClusterIssuer"
           metadata = {
-            name = "letsencrypt-dns"
+            name = local.wildcard_cluster_issuer_name
           }
           spec = {
             acme = {
@@ -77,7 +77,7 @@ resource "helm_release" "cert_manager_cluster_issuer" {
           apiVersion = "cert-manager.io/v1"
           kind       = "Certificate"
           metadata = {
-            name      = "wildcard-cert"
+            name      = local.wildcard_secret_name
             namespace = kubernetes_namespace_v1.cert_manager.metadata[0].name
           }
           spec = {
@@ -85,7 +85,7 @@ resource "helm_release" "cert_manager_cluster_issuer" {
               local.wildcard_host
             ]
             issuerRef = {
-              name = "letsencrypt-dns"
+              name = local.wildcard_cluster_issuer_name
               kind = "ClusterIssuer"
             }
             secretName = "wildcard-cert-tls"
