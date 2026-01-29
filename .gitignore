@@ -80,3 +80,7 @@ vbox*.bat
 *.p12
 *.p7b
 *.p7c
+
+# other files
+Vagrantfile.local
+.vagrant
