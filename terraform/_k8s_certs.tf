@@ -56,7 +56,7 @@ resource "helm_release" "cert_manager_cluster_issuer" {
               server = "https://acme-v02.api.letsencrypt.org/directory"
               email  = var.k3s_cert_manager_email
               privateKeySecretRef = {
-                name = "letsencrypt-key-pair"
+                name = local.wildcard_cluster_issuer_name
               }
               solvers = [
                 {
@@ -67,6 +67,9 @@ resource "helm_release" "cert_manager_cluster_issuer" {
                         key  = "api-token"
                       }
                     }
+                  }
+                  selector = {
+                    dnsZones = [var.k3s_cert_manager_domain, local.wildcard_host]
                   }
                 }
               ]
@@ -88,8 +91,11 @@ resource "helm_release" "cert_manager_cluster_issuer" {
               name = local.wildcard_cluster_issuer_name
               kind = "ClusterIssuer"
             }
-            secretName = "wildcard-cert-tls"
+            secretName = local.wildcard_secret_name
             commonName = local.wildcard_host
+            dnsNames = [
+              local.wildcard_host
+            ]
           }
         }
       ]
