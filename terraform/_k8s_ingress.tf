@@ -23,6 +23,18 @@ resource "helm_release" "ingress" {
     {
       name  = "controller.service.loadBalancerIP"
       value = var.k3s_loadbalancer_ip
+    },
+    {
+      name  = "controller.logging.traffic.address"
+      value = "stdout"
+    },
+    {
+      name  = "controller.logging.traffic.format"
+      value = "raw"
+    },
+    {
+      name  = "controller.logging.traffic.facility"
+      value = "daemon"
     }
   ]
 
