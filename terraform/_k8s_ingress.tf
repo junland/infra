@@ -40,5 +40,3 @@ resource "helm_release" "ingress" {
 
   depends_on = [kubernetes_namespace_v1.ingress_system, helm_release.loadbalancer]
 }
-
-
