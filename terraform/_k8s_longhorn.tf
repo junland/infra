@@ -25,11 +25,11 @@ resource "helm_release" "longhorn" {
         host             = "longhorn.${var.k3s_cert_manager_domain}"
         pathType         = "Prefix"
         path             = "/"
-        tls              = true
-        tlsSecretName    = local.wildcard_secret_name
         annotations = {
-          "cert-manager.io/cluster-issuer" = local.wildcard_cluster_issuer_name
-          "haproxy.org/ingress.class"      = "haproxy"
+          "haproxy.org/ingress.class" = "haproxy"
+          "haproxy.org/auth-type"     = "basic-auth"
+          "haproxy.org/auth-secret"   = "longhorn-basic-auth"
+          "haproxy.org/auth-realm"    = "Restricted Area"
         }
       }
     })
@@ -38,4 +38,17 @@ resource "helm_release" "longhorn" {
   depends_on = [
     kubernetes_namespace_v1.longhorn_system
   ]
+}
+
+resource "kubernetes_secret_v1" "longhorn_basic_auth" {
+  metadata {
+    name      = "longhorn-basic-auth"
+    namespace = kubernetes_namespace_v1.longhorn_system.metadata[0].name
+  }
+
+  data = {
+    "${var.k3s_longhorn_admin_username}" = sensitive(var.k3s_longhorn_admin_password)
+  }
+
+  type = "Opaque"
 }
