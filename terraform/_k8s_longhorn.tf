@@ -4,6 +4,19 @@ resource "kubernetes_namespace_v1" "longhorn_system" {
   }
 }
 
+resource "kubernetes_secret_v1" "longhorn_basic_auth" {
+  metadata {
+    name      = "longhorn-basic-auth"
+    namespace = kubernetes_namespace_v1.longhorn_system.metadata[0].name
+  }
+
+  data = {
+    auth = sensitive(var.longhorn_basic_auth)
+  }
+
+  type = "Opaque"
+}
+
 resource "helm_release" "longhorn" {
   name       = "longhorn"
   repository = "https://charts.longhorn.io"
@@ -30,12 +43,15 @@ resource "helm_release" "longhorn" {
         annotations = {
           "cert-manager.io/cluster-issuer" = local.wildcard_cluster_issuer_name
           "haproxy.org/ingress.class"      = "haproxy"
+          "haproxy.org/auth-type"          = "basic-auth"
+          "haproxy.org/auth-secret"        = kubernetes_secret_v1.longhorn_basic_auth.metadata[0].name
         }
       }
     })
   ]
 
   depends_on = [
-    kubernetes_namespace_v1.longhorn_system
+    kubernetes_namespace_v1.longhorn_system,
+    kubernetes_secret_v1.longhorn_basic_auth
   ]
 }

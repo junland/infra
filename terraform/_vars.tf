@@ -58,3 +58,9 @@ variable "k3s_cert_manager_domain" {
   type        = string
   description = "Domain name for Let's Encrypt certificates."
 }
+
+variable "longhorn_basic_auth" {
+  type        = string
+  description = "Basic auth credentials for Longhorn UI in htpasswd format (e.g., 'admin:$apr1$...')."
+  sensitive   = true
+}
