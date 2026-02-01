@@ -7,7 +7,6 @@
   hosts: internal_servers
   become: true
   environment:
-    PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
+    PATH: "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
   roles:
-    #- role: base-server
     - role: k3s
