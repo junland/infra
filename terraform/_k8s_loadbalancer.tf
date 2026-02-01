@@ -9,6 +9,8 @@ resource "helm_release" "loadbalancer" {
   repository = "https://metallb.github.io/metallb"
   chart      = "metallb"
   namespace  = kubernetes_namespace_v1.loadbalancer_system.metadata[0].name
+  replace    = true
+  atomic     = true
 
   depends_on = [kubernetes_namespace_v1.loadbalancer_system]
 }
@@ -19,6 +21,7 @@ resource "helm_release" "loadbalancer_crds" {
   chart      = "raw"
   namespace  = kubernetes_namespace_v1.loadbalancer_system.metadata[0].name
   replace    = true
+  atomic     = true
   version    = "2.0.2"
 
   values = [

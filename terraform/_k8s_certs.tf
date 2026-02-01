@@ -25,6 +25,8 @@ resource "helm_release" "cert_manager" {
   repository = "https://charts.jetstack.io"
   chart      = "cert-manager"
   namespace  = kubernetes_namespace_v1.cert_manager.metadata[0].name
+  replace    = true
+  atomic     = true
 
   set = [{
     name  = "installCRDs"
@@ -41,6 +43,7 @@ resource "helm_release" "cert_manager_cluster_issuer" {
   namespace  = kubernetes_namespace_v1.cert_manager.metadata[0].name
   version    = "2.0.2"
   replace    = true
+  atomic     = true
 
   values = [
     yamlencode({

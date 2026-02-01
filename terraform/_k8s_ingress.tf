@@ -10,6 +10,7 @@ resource "helm_release" "ingress" {
   chart      = "kubernetes-ingress"
   namespace  = kubernetes_namespace_v1.ingress_system.metadata[0].name
   replace    = true
+  atomic     = true
 
   set = [
     {

@@ -10,6 +10,7 @@ resource "helm_release" "longhorn" {
   chart      = "longhorn"
   namespace  = kubernetes_namespace_v1.longhorn_system.metadata[0].name
   replace    = true
+  atomic     = true
 
   set = [{
     name  = "persistence.defaultFsType"
@@ -36,7 +37,7 @@ resource "helm_release" "longhorn" {
   ]
 
   depends_on = [
-    kubernetes_namespace_v1.longhorn_system
+    kubernetes_namespace_v1.longhorn_system, helm_release.loadbalancer_crds
   ]
 }
 
