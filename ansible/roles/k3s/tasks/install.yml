@@ -3,6 +3,11 @@
 # Install k3s on the target node(s)
 #
 
+- name: Install kernel-modules-extra package
+  ansible.builtin.package:
+      name: kernel-modules-extra
+      state: present
+
 # Download the k3s installation script on the target node(s)
 - name: Download k3s installation script
   ansible.builtin.get_url:
