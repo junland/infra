@@ -19,6 +19,11 @@
       update_only: true
       update_cache: true
 
+- name: Update all packages to the latest version
+  ansible.builtin.package:
+      name: "*"
+      state: latest
+
 - name: Import install tasks
   ansible.builtin.import_tasks:
       file: install.yml
