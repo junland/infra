@@ -59,13 +59,19 @@ variable "k3s_cert_manager_domain" {
   description = "Domain name for Let's Encrypt certificates."
 }
 
+variable "k3s_longhorn_install" {
+  type        = bool
+  description = "Install longhorn resources."
+  default     = false
+}
+
 variable "k3s_longhorn_admin_username" {
   type        = string
-  description = "Username for longhorn admin dashboard"
+  description = "Username for longhorn admin dashboard."
   default     = "admin"
 }
 
 variable "k3s_longhorn_admin_password" {
   type        = string
-  description = "Encrypted password for longhorn admin dashboard"
+  description = "Encrypted password for longhorn admin dashboard."
 }

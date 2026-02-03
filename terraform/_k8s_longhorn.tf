@@ -1,14 +1,18 @@
 resource "kubernetes_namespace_v1" "longhorn_system" {
+  count = var.k3s_longhorn_install ? 1 : 0
+
   metadata {
     name = "longhorn-system"
   }
 }
 
 resource "helm_release" "longhorn" {
+  count = var.k3s_longhorn_install ? 1 : 0
+
   name       = "longhorn"
   repository = "https://charts.longhorn.io"
   chart      = "longhorn"
-  namespace  = kubernetes_namespace_v1.longhorn_system.metadata[0].name
+  namespace  = kubernetes_namespace_v1.longhorn_system[0].metadata[0].name
   replace    = true
   atomic     = true
 
@@ -37,14 +41,16 @@ resource "helm_release" "longhorn" {
   ]
 
   depends_on = [
-    kubernetes_namespace_v1.longhorn_system, helm_release.loadbalancer_crds
+    kubernetes_namespace_v1.longhorn_system[0], helm_release.loadbalancer_crds
   ]
 }
 
 resource "kubernetes_secret_v1" "longhorn_basic_auth" {
+  count = var.k3s_longhorn_install ? 1 : 0
+
   metadata {
     name      = "longhorn-basic-auth"
-    namespace = kubernetes_namespace_v1.longhorn_system.metadata[0].name
+    namespace = kubernetes_namespace_v1.longhorn_system[0].metadata[0].name
   }
 
   data = {
