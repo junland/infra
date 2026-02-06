@@ -1,7 +1,7 @@
 output "name" {
-    value = "John Unland"
+  value = "John Unland"
 }
 
 output "position" {
-    value = "Senior DevOps Engineer"
+  value = "Senior DevOps Engineer"
 }
