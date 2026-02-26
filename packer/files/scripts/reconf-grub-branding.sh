@@ -1,6 +1,6 @@
 #!/bin/bash
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2023 John Unland
+# Copyright (C) 2026 John Unland
 
 set -e
 
@@ -23,7 +23,7 @@ msg_info "Update GRUB (UEFI)..."
 
 grub2-mkconfig -o /etc/grub2-efi.cfg
 
-for c in /boot/loader/entries/*.conf; do 
+for c in /boot/loader/entries/*.conf; do
    echo "Processing $c entry file..";
    sed -i 's/^title Rocky Linux/title InfraOS/g' $c
 done

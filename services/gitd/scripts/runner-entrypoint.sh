@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2023 John Unland
+# Copyright (C) 2026 John Unland
 # Copyright (c) 2023 The Forgejo Authors
 # Copyright (c) 2022 The Gitea Authors
 
