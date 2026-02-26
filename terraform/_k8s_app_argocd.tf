@@ -29,7 +29,8 @@ resource "helm_release" "argocd" {
             "cert-manager.io/cluster-issuer" = local.wildcard_cluster_issuer_name
             "haproxy.org/ingress.class"      = "haproxy"
             "haproxy.org/ssl-passthrough"    = "true"
-            "haproxy.org/ssl-redirect-code"    = "301"
+            "haproxy.org/ssl-redirect-code"  = "301"
+            "haproxy.org/ssl-redirect-port"  = "443"
           }
           tls = [
             {
