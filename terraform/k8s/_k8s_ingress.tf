@@ -23,7 +23,7 @@ resource "helm_release" "ingress" {
     },
     {
       name  = "controller.service.loadBalancerIP"
-      value = var.k3s_loadbalancer_ip
+      value = var.k8s_loadbalancer_ip
     },
     {
       name  = "controller.logging.traffic.address"

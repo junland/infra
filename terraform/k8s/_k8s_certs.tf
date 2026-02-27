@@ -13,7 +13,7 @@ resource "kubernetes_secret_v1" "cloudflare_api_token" {
   }
 
   data = {
-    api-token = sensitive(var.cf_api_token)
+    api-token = sensitive(var.k8s_cert_manager_cf_api_token)
   }
 
   type = "Opaque"
@@ -57,7 +57,7 @@ resource "helm_release" "cert_manager_cluster_issuer" {
           spec = {
             acme = {
               server = "https://acme-v02.api.letsencrypt.org/directory"
-              email  = var.k3s_cert_manager_email
+              email  = var.k8s_cert_manager_email
               privateKeySecretRef = {
                 name = local.wildcard_cluster_issuer_name
               }
@@ -72,7 +72,7 @@ resource "helm_release" "cert_manager_cluster_issuer" {
                     }
                   }
                   selector = {
-                    dnsZones = [var.k3s_cert_manager_domain, local.wildcard_host]
+                    dnsZones = [var.k8s_cert_manager_domain, local.wildcard_host]
                   }
                 }
               ]

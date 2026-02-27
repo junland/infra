@@ -1,5 +1,5 @@
 resource "kubernetes_namespace_v1" "longhorn_system" {
-  count = var.k3s_longhorn_install ? 1 : 0
+  count = var.k8s_longhorn_install ? 1 : 0
 
   metadata {
     name = "longhorn-system"
@@ -7,7 +7,7 @@ resource "kubernetes_namespace_v1" "longhorn_system" {
 }
 
 resource "helm_release" "longhorn" {
-  count = var.k3s_longhorn_install ? 1 : 0
+  count = var.k8s_longhorn_install ? 1 : 0
 
   name       = "longhorn"
   repository = "https://charts.longhorn.io"
@@ -27,7 +27,7 @@ resource "helm_release" "longhorn" {
         enabled          = true
         apiVersion       = "networking.k8s.io/v1"
         ingressClassName = "haproxy"
-        host             = "longhorn.${var.k3s_cert_manager_domain}"
+        host             = "longhorn.${var.k8s_cert_manager_domain}"
         pathType         = "Prefix"
         path             = "/"
         annotations = {
@@ -46,7 +46,7 @@ resource "helm_release" "longhorn" {
 }
 
 resource "kubernetes_secret_v1" "longhorn_basic_auth" {
-  count = var.k3s_longhorn_install ? 1 : 0
+  count = var.k8s_longhorn_install ? 1 : 0
 
   metadata {
     name      = "longhorn-basic-auth"
@@ -54,7 +54,7 @@ resource "kubernetes_secret_v1" "longhorn_basic_auth" {
   }
 
   data = {
-    "${var.k3s_longhorn_admin_username}" = sensitive(var.k3s_longhorn_admin_password)
+    "${var.k8s_longhorn_admin_username}" = sensitive(var.k8s_longhorn_admin_password)
   }
 
   type = "Opaque"

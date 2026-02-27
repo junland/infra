@@ -34,7 +34,7 @@ resource "helm_release" "loadbalancer_crds" {
           namespace = kubernetes_namespace_v1.loadbalancer_system.metadata[0].name
         }
         spec = {
-          addresses = [var.k3s_loadbalancer_pool]
+          addresses = [var.k8s_loadbalancer_pool]
         }
         },
         {

@@ -15,7 +15,7 @@ resource "helm_release" "argocd" {
   values = [
     yamlencode({
       global = {
-        domain = "argocd.${var.k3s_cert_manager_domain}"
+        domain = "argocd.${var.k8s_cert_manager_domain}"
       }
       certificate = {
         enabled = true
@@ -24,7 +24,7 @@ resource "helm_release" "argocd" {
         ingress = {
           enabled          = true
           ingressClassName = "haproxy"
-          hosts            = ["argocd.${var.k3s_cert_manager_domain}"]
+          hosts            = ["argocd.${var.k8s_cert_manager_domain}"]
           annotations = {
             "cert-manager.io/cluster-issuer" = local.wildcard_cluster_issuer_name
             "haproxy.org/ingress.class"      = "haproxy"

@@ -1,10 +1,10 @@
-resource "kubernetes_deployment_v1" "test_app_green" {
+resource "kubernetes_deployment_v1" "test_app_blue" {
   metadata {
-    name = "test-app-green"
+    name = "test-app-blue"
 
     labels = {
       app   = "test-app"
-      color = "green"
+      color = "blue"
     }
   }
 
@@ -13,7 +13,8 @@ resource "kubernetes_deployment_v1" "test_app_green" {
 
     selector {
       match_labels = {
-        color = "green"
+        app   = "test-app"
+        color = "blue"
       }
     }
 
@@ -21,7 +22,7 @@ resource "kubernetes_deployment_v1" "test_app_green" {
       metadata {
         labels = {
           app   = "test-app"
-          color = "green"
+          color = "blue"
         }
       }
 
@@ -41,8 +42,8 @@ resource "kubernetes_deployment_v1" "test_app_green" {
         }
 
         container {
-          name  = "test-green"
-          image = "docker.io/kirbah/blue-green:green"
+          name  = "test-blue"
+          image = "docker.io/kirbah/blue-green:blue"
 
           port {
             container_port = 8080
@@ -64,12 +65,12 @@ resource "kubernetes_deployment_v1" "test_app_green" {
   }
 }
 
-resource "kubernetes_service_v1" "test_app_green" {
+resource "kubernetes_service_v1" "test_app_blue" {
   metadata {
-    name = "svc-green"
+    name = "svc-blue"
 
     labels = {
-      color = "green"
+      color = "blue"
     }
   }
 
@@ -82,14 +83,14 @@ resource "kubernetes_service_v1" "test_app_green" {
 
     selector = {
       app   = "test-app"
-      color = "green"
+      color = "blue"
     }
   }
 }
 
-resource "kubernetes_ingress_v1" "test_app_green" {
+resource "kubernetes_ingress_v1" "test_app_blue" {
   metadata {
-    name = "lb-ingress-green"
+    name = "lb-ingress-blue"
 
     annotations = {
       "cert-manager.io/cluster-issuer" = local.wildcard_cluster_issuer_name
@@ -100,7 +101,7 @@ resource "kubernetes_ingress_v1" "test_app_green" {
     ingress_class_name = "haproxy"
 
     rule {
-      host = "green.${var.k3s_cert_manager_domain}"
+      host = "blue.${var.k8s_cert_manager_domain}"
 
       http {
         path {
@@ -109,7 +110,7 @@ resource "kubernetes_ingress_v1" "test_app_green" {
 
           backend {
             service {
-              name = "svc-green"
+              name = "svc-blue"
               port {
                 number = 80
               }
@@ -124,4 +125,5 @@ resource "kubernetes_ingress_v1" "test_app_green" {
       secret_name = local.wildcard_secret_name
     }
   }
+
 }
