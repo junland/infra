@@ -1,7 +1,7 @@
 module "k8s" {
   count = var.k8s_enable_module ? 1 : 0
 
-  source                        = "./k8s"
+  source = "./k8s"
 
   k8s_kubectl_config_path       = var.k8s_kubectl_config_path
   k8s_loadbalancer_ip           = var.k8s_loadbalancer_ip
