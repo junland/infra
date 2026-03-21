@@ -1,3 +1,5 @@
+# Use k8s module to deploy local kubernetes cluster for testing purposes.
+# This is not intended for production use and should only be used in a local testing environment.
 module "k8s" {
   count = var.k8s_enable_module ? 1 : 0
 
