@@ -1,3 +1,9 @@
+variable "env" {
+  type        = string
+  description = "Environment to deploy resources to."
+  default     = "prod"
+}
+
 variable "cf_email" {
   type        = string
   description = "Email registered with Cloudflare."
