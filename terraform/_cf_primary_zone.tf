@@ -15,8 +15,6 @@ resource "cloudflare_dns_record" "primary" {
   ttl     = 300
   type    = "CNAME"
   zone_id = cloudflare_zone.primary.id
-
-  tags = [var.env]
 }
 
 # Create A records for hosts within the primary zone.
@@ -29,8 +27,6 @@ resource "cloudflare_dns_record" "host" {
   ttl     = 300
   type    = "A"
   zone_id = cloudflare_zone.primary.id
-
-  tags = [var.env]
 }
 
 # Create CNAME records for services within the primary zone.
@@ -68,6 +64,4 @@ resource "cloudflare_dns_record" "wildcard" {
   ttl     = 300
   type    = "CNAME"
   zone_id = cloudflare_zone.primary.id
-
-  tags = [var.env]
 }
