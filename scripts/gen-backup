@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2026 John Unland
 
-set -e
+set -euo pipefail
 
 msg() {
     echo " >>> $1"
@@ -10,13 +10,17 @@ msg() {
 
 BASE_MOUNTPOINT=/mnt/storage
 BACKUP_DATE_TIMESTAMP=$(date +%m-%d-%Y-%s)
-BACKUP_FILE=$1/backup-"$BACKUP_DATE_TIMESTAMP".tgz
-TMP_DIR_LIST_FILE=/tmp/gen-archive-flags-$BACKUP_DATE_TIMESTAMP.tmp
 EXCLUDE_FLAGS=()
+OUTPUT_DIR=${1:-}
 
 # Check if first argument is not empty and is a directory.
-if [ -z "$1" ] || [ ! -d "$1" ]; then
+if [ -z "$OUTPUT_DIR" ] || [ ! -d "$OUTPUT_DIR" ]; then
     echo "Usage: $0 <directory>"
+    exit 1
+fi
+
+if [ ! -d "$BASE_MOUNTPOINT" ]; then
+    echo "Error: base mount point does not exist: $BASE_MOUNTPOINT"
     exit 1
 fi
 
@@ -28,18 +32,17 @@ fi
 
 msg "Generateing archive file..."
 
-find $BASE_MOUNTPOINT -type f -name .skip_archive -printf '%P\n' >"$TMP_DIR_LIST_FILE"
-
-# Create EXCLUDE_FLAGS array from gen-exclude-flags.tmp
-while read -r EXCLUDE_FLAG; do
-    EXCLUDE_FLAGS+=("--exclude=$(dirname "$EXCLUDE_FLAG")")
-done <"$TMP_DIR_LIST_FILE"
+# Create exclusion flags from .skip_archive markers.
+while IFS= read -r -d '' skip_marker; do
+    if [[ "$skip_marker" == */* ]]; then
+        EXCLUDE_FLAGS+=("--exclude=${skip_marker%/.skip_archive}")
+    else
+        EXCLUDE_FLAGS+=("--exclude=.")
+    fi
+done < <(find "$BASE_MOUNTPOINT" -type f -name .skip_archive -printf '%P\0')
 
 # Create archive
-tar "${EXCLUDE_FLAGS[@]}" -I pigz -cvf "$BACKUP_FILE" -C $BASE_MOUNTPOINT .
+BACKUP_FILE="$OUTPUT_DIR/backup-$BACKUP_DATE_TIMESTAMP.tgz"
+tar "${EXCLUDE_FLAGS[@]}" -I pigz -cvf "$BACKUP_FILE" -C "$BASE_MOUNTPOINT" .
 
 msg "Created archive file: $BACKUP_FILE"
-
-msg "Cleaning up..."
-
-rm -f "$TMP_DIR_LIST_FILE"
