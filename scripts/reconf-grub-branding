@@ -13,7 +13,12 @@ msg_fail() {
     exit 1
 }
 
-OS_TITLE="$(grep "^NAME=" /etc/os-release | cut -d '"' -f 2)"
+if ! OS_RELEASE_NAME=$(grep -m1 '^NAME="' /etc/os-release); then
+    msg_fail "Unable to determine the current OS title"
+fi
+
+OS_TITLE=${OS_RELEASE_NAME#NAME=\"}
+OS_TITLE=${OS_TITLE%\"}
 NEW_OS_TITLE="InfraOS"
 
 [ "${EUID}" -eq "0" ] || msg_fail "$0: Script must be run via sudo or root user"
@@ -26,9 +31,11 @@ msg "Update GRUB (UEFI)..."
 
 grub2-mkconfig -o /etc/grub2-efi.cfg
 
+shopt -s nullglob
+
 for config_file in /boot/loader/entries/*.conf; do
     msg "Processing $config_file entry file.."
-    sed -i "s/^title $OS_TITLE/title $NEW_OS_TITLE/g" $config_file
+    sed -i "s/^title $OS_TITLE/title $NEW_OS_TITLE/g" "$config_file"
 done
 
 msg "Rebranding complete..."
