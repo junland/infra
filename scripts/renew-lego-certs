@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2026 John Unland
 
-set -e
+set -euo pipefail
 
 msg() {
     echo " >>> $1"
@@ -10,36 +10,40 @@ msg() {
 
 DATE_TIME=$(date "+%A %B %d %T %Y")
 LEGO_DNS_TYPE=cloudflare
-LEGO_DATA_DIR=$HOME/.lego
-LEGO_CERT_DIR=$LEGO_DATA_DIR/certificates
+LEGO_DATA_DIR="$HOME/.lego"
+LEGO_CERT_DIR="$LEGO_DATA_DIR/certificates"
 CF_API_EMAIL=email@gmail.com
 CF_DNS_API_TOKEN=somekey
 CF_DOMAIN="example.com"
 OUTPUT_CERT_DIR=/etc/ssl/certs
+CF_DOMAINS=${CF_DOMAINS:-"$CF_DOMAIN"}
 
 export CF_DNS_API_TOKEN CF_API_EMAIL CF_DOMAIN
 
 msg "Start $0 script @ $DATE_TIME"
 
-# Check if certificates exist in cert directory.
+# Renew each configured certificate.
 for domain in $CF_DOMAINS; do
+    cert_file="$LEGO_CERT_DIR/$domain.crt"
+    key_file="$LEGO_CERT_DIR/$domain.key"
+    pem_file="$LEGO_CERT_DIR/$domain.pem"
+    output_file="$OUTPUT_CERT_DIR/$domain.pem"
+
     msg "Renewing certificate: $domain"
     lego --accept-tos --path "$LEGO_DATA_DIR" \
-        --dns $LEGO_DNS_TYPE --domains "$domain" --email $CF_API_EMAIL renew --no-bundle --days 90
+        --dns "$LEGO_DNS_TYPE" --domains "$domain" --email "$CF_API_EMAIL" renew --no-bundle --days 90
 
     msg "Creating combined PEM certificate..."
-    cat 644 $LEGO_CERT_DIR/$domain.crt $LEGO_CERT_DIR/$domain.key >$LEGO_CERT_DIR/$domain.pem
+    cat "$cert_file" "$key_file" >"$pem_file"
 
     msg "Setting permissions on created cert..."
-    chmod 644 $LEGO_CERT_DIR/$domain.crt
+    chmod 644 "$cert_file"
 
     msg "Setting permissions on created key..."
-    chmod 600 $LEGO_CERT_DIR/$domain.key
+    chmod 600 "$key_file" "$pem_file"
 
     msg "Copying combined PEM certificate..."
-    cat $LEGO_CERT_DIR/$domain.pem >$OUTPUT_CERT_DIR/$domain.pem
-
-    exit 0
+    install -m 600 "$pem_file" "$output_file"
 done
 
 exit 0
