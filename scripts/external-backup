@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2026 John Unland
 
-set -e
+set -euo pipefail
 
 msg() {
-    echo " >>> $1" >>$LOG_FILE
+    echo " >>> $1" >>"$LOG_FILE"
 }
 
 LOG_FILE="/var/log/external-backup.log"
@@ -13,16 +13,29 @@ DISK_LABEL="BACKUP"
 FILE_STAMP=".backup_dir"
 TIME_STAMP=$(date +%Y-%m-%d_%H-%M-%S)
 SEARCH_DIR="/mnt"
+MOUNT_DIR="/mnt/external-backup"
+mounted=false
 
-# Find all directories with the file stamp.
-DIR_LIST=$(find $SEARCH_DIR -type f -name $FILE_STAMP -exec dirname {} \;)
+cleanup() {
+    if [ "$mounted" = true ]; then
+        umount "$MOUNT_DIR" || true
+    fi
+    rmdir "$MOUNT_DIR" 2>/dev/null || true
+}
+
+trap cleanup EXIT
 
 # Mount the disk with the label and exit if it fails.
-if [ -L "/dev/disk/by-label/$DISK_LABEL" ]; then
-    # Mount the disk with the label and exit if it fails.
+if [ -e "/dev/disk/by-label/$DISK_LABEL" ]; then
+    if mountpoint -q "$MOUNT_DIR"; then
+        msg "Error: Mount point is already in use: $MOUNT_DIR"
+        exit 1
+    fi
+
     msg "Mounting disk with label $DISK_LABEL..."
-    mkdir -p /mnt/external-backup
-    mount -t ntfs3 /dev/disk/by-label/$DISK_LABEL /mnt/external-backup || exit 1
+    mkdir -p "$MOUNT_DIR"
+    mount -t ntfs3 "/dev/disk/by-label/$DISK_LABEL" "$MOUNT_DIR"
+    mounted=true
 
     sleep 3
 
@@ -31,20 +44,21 @@ if [ -L "/dev/disk/by-label/$DISK_LABEL" ]; then
 
     msg "External backup device ready..."
 
-    # Backup the directories using tar.gz
-    for DIR in $DIR_LIST; do
-        msg "Backing up directory: $DIR"
-        tar -czfv /mnt/external-backup/"$TIME_STAMP"-"$(basename "$DIR")".tar.gz "$DIR" >>$LOG_FILE 2>&1
-    done
+    # Backup directories marked with .backup_dir using tar.gz.
+    while IFS= read -r -d '' dir; do
+        msg "Backing up directory: $dir"
+        tar -czfv "$MOUNT_DIR/$TIME_STAMP-$(basename "$dir").tar.gz" "$dir" >>"$LOG_FILE" 2>&1
+    done < <(find "$SEARCH_DIR" -type f -name "$FILE_STAMP" -printf '%h\0')
 
     # Unmount the disk.
     msg "Unmounting disk with label $DISK_LABEL..."
-    umount /mnt/external-backup
+    umount "$MOUNT_DIR"
+    mounted=false
 
     # Beep 3 times low slow.
     beep -r 3 -d 300 -f 1000 -l 100
+else
+    msg "Backup disk with label $DISK_LABEL was not found."
 fi
-
-rmdir /mnt/external-backup
 
 msg "Backup complete."
