@@ -12,10 +12,10 @@ DATE_TIME=$(date "+%A %B %d %T %Y")
 USERS="root"
 
 # Detect if we are using podman or docker
-if [ -x "$(command -v podman)" ]; then
-    CONTAINER_CMD="podman"
-elif [ -x "$(command -v docker)" ]; then
-    CONTAINER_CMD="docker"
+if CONTAINER_CMD=$(command -v podman 2>/dev/null); then
+    :
+elif CONTAINER_CMD=$(command -v docker 2>/dev/null); then
+    :
 else
     msg "Error: podman or docker is not installed."
     exit 1
@@ -31,8 +31,8 @@ for user in $USERS; do
         continue
     fi
 
-    msg "Cleaning podman system for $user"
-    su - "$user" -c "$command system prune"
+    msg "Cleaning container system for $user"
+    su - "$user" -c 'exec "$@"' -- "$CONTAINER_CMD" system prune
 done
 
 exit 0
