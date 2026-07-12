@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2026 John Unland
 
-set -e
+set -euo pipefail
 
 msg() {
     echo " >>> $1"
@@ -30,7 +30,7 @@ if [ -z "$BACKUP_DIR" ]; then
 fi
 
 # Make sure directory is mounted and or exists
-if [ ! -d $BACKUP_DIR ]; then
+if [ ! -d "$BACKUP_DIR" ]; then
     msg "Backup directory does not exist: $BACKUP_DIR"
     msg "Create the specified directory or change the BACKUP_DIR variable in this script."
     exit 1
@@ -38,29 +38,36 @@ fi
 
 msg "Start $0 script @ $DATE_TIME"
 
-# Loop through all container volumes
-for volume in $($CONTAINER_CMD volume ls -q); do
-    # Get volume labels
-    LABELS=$($CONTAINER_CMD volume inspect $volume --format '{{ .Labels }}')
+backup_volume() {
+    local volume=$1
+    local backup_file="$BACKUP_DIR/podman-vol-$volume-$DATE.tar.gz"
+    local temporary_file="$backup_file.tmp.$$"
 
-    # Check if volume has "backup:true" label
-    if [ echo $LABELS | grep "backup:true" ]; then
-        # Get container name
-        CONTAINER=$($CONTAINER_CMD volume inspect $volume --format '{{ .Labels.container }}')
-
-        msg "Backing up volume: $volume"
-        $CONTAINER_CMD volume export "$volume" | gzip >$BACKUP_DIR/podman-vol-"$volume"-"$DATE".tar.gz
+    msg "Backing up volume: $volume"
+    if ! "$CONTAINER_CMD" volume export "$volume" | gzip >"$temporary_file"; then
+        rm -f "$temporary_file"
+        return 1
     fi
-done
+    mv -f "$temporary_file" "$backup_file"
+}
+
+# Loop through all container volumes.
+volume_list=$("$CONTAINER_CMD" volume ls -q)
+if [ -n "$volume_list" ]; then
+    while IFS= read -r volume; do
+        if [ "$("$CONTAINER_CMD" volume inspect "$volume" --format '{{ index .Labels "backup" }}')" = "true" ]; then
+            backup_volume "$volume"
+        fi
+    done <<<"$volume_list"
+fi
 
 # Backup optional volumes.
 for volume in $OPT_VOLUMES; do
     msg "Backing up optional volume: $volume"
-    $CONTAINER_CMD volume export "$volume" | gzip >$BACKUP_DIR/podman-vol-"$volume"-"$DATE".tar.gz
+    backup_volume "$volume"
 done
 
-# Clean up old backups older than 7 days
-
-find $BACKUP_DIR -name "podman-vol-*.tar.gz" -mtime +7 -exec rm {} \;
+# Clean up old backups older than 7 days.
+find "$BACKUP_DIR" -type f -name "podman-vol-*.tar.gz" -mtime +7 -delete
 
 exit 0
