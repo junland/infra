@@ -8,13 +8,18 @@ msg() {
     echo " >>> $1"
 }
 
-SNAPSHOT_DATASET=$1
-SNAPSHOT_LABEL=$2
-SNAPSHOT_DATE_TIMESTAMP=$(date +%m-%d-%Y-%s)
+SNAPSHOT_DATASET=${1:-}
+SNAPSHOT_LABEL=${2:-}
 
 # Check if snapshot dataset or label argument is not empty.
 if [ -z "$SNAPSHOT_DATASET" ] || [ -z "$SNAPSHOT_LABEL" ]; then
     echo "Usage: $0 <dataset> <label>"
+    exit 1
+fi
+
+# Check if zfs is installed.
+if ! command -v zfs >/dev/null 2>&1; then
+    msg "Error: zfs command not found"
     exit 1
 fi
 
@@ -23,6 +28,8 @@ if ! zfs list "$SNAPSHOT_DATASET" >/dev/null 2>&1; then
     msg "Error: $SNAPSHOT_DATASET does not exist"
     exit 1
 fi
+
+SNAPSHOT_DATE_TIMESTAMP=$(date +%m-%d-%Y-%s)
 
 # Run zfs snapshot command
 msg "Creating snapshot $SNAPSHOT_DATASET@$SNAPSHOT_LABEL-$SNAPSHOT_DATE_TIMESTAMP"
