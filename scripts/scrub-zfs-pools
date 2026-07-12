@@ -13,16 +13,19 @@ DATE_TIME=$(date +%m-%d-%Y-%s)
 msg "Start $0 script @ $DATE_TIME"
 
 # Make sure zfs is installed
-if ! command -v zpool &> /dev/null; then
+if ! command -v zpool >/dev/null 2>&1; then
     msg "zpool command not found..."
     exit 1
 fi
 
 # Run scrub on all ZFS pools
-for pool in $(zpool list -H -o name); do
+pools=$(zpool list -H -o name)
+printf '%s\n' "$pools" | while IFS= read -r pool; do
+    [ -n "$pool" ] || continue
+
     TIME_SCRUB=$(date +%m-%d-%Y-%s)
-    msg "Running scrub on $POOL @ $TIME_SCRUB ..."
-    zpool scrub $pool
+    msg "Running scrub on $pool @ $TIME_SCRUB ..."
+    zpool scrub "$pool"
 done
 
 exit 0
