@@ -2,36 +2,32 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2026 John Unland
 
-set -e
+set -euo pipefail
 
 msg() {
-    echo " >>> $1"
+    printf ' >>> %s\n' "$1"
 }
 
-LOGFILE=${VARIABLE:="/var/log/nginx/*.access.log"}
+LOGFILE="${LOGFILE:-${VARIABLE:-/var/log/nginx/*.access.log}}"
 
-if [ ! -f "$LOGFILE" ]; then
+mapfile -t LOG_FILES < <(compgen -G "$LOGFILE" || true)
+if ((${#LOG_FILES[@]} == 0)); then
     msg "$LOGFILE does not exist or is not a file..."
     exit 1
 fi
 
-awk '{print $1}' $LOGFILE | sort | uniq -c | sort -nr >/tmp/web_ips.list
-
 msg "Report as of $(date)"
 
-while read line; do
-    IP=$(echo $line | awk '{print $2}')
-    COUNT=$(echo $line | awk '{print $1}')
+coproc IP_COUNTS {
+    awk 'NF { count[$1]++ } END { for (ip in count) print count[ip], ip }' "${LOG_FILES[@]}" | sort -nr
+}
+IP_COUNTS_PID_VALUE=$IP_COUNTS_PID
+
+while read -r COUNT IP <&"${IP_COUNTS[0]}"; do
     msg "Seaching for $IP with $COUNT hit(s) on this server."
-    whois $IP >/tmp/query.txt
-    cat /tmp/query.txt | grep "OrgName:"
-    cat /tmp/query.txt | grep "OrgId:"
-    cat /tmp/query.txt | grep "Address:"
-    cat /tmp/query.txt | grep "City:"
-    cat /tmp/query.txt | grep "StateProv:"
-    cat /tmp/query.txt | grep "Country:"
-    cat /tmp/query.txt | grep "OrgTechName:"
-    cat /tmp/query.txt | grep "OrgAbuseEmail:"
-done </tmp/web_ips.list
+    whois -- "$IP" | awk '/OrgName:|OrgId:|Address:|City:|StateProv:|Country:|OrgTechName:|OrgAbuseEmail:/'
+done
+
+wait "$IP_COUNTS_PID_VALUE"
 
 exit 0
