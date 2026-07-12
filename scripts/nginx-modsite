@@ -3,17 +3,30 @@
 # Copyright (C) 2010 Michael Lustfield <mtecknology@ubuntu.com>, 2016 Andrew Salkeld (ajsalkeld) <andrew@ajsalkeld.com>
 # Copyright (C) 2026 John Unland (Forked with modifications)
 
-set -e
+set -euo pipefail
 
 ##
 # Default Settings
 ##
 
-NGINX_CONF_FILE="$(awk -F= -v RS=' ' '/conf-path/ {print $2}' <<<$(nginx -V 2>&1))"
+if ! command -v nginx >/dev/null 2>&1; then
+    echo "${0##*/}: ERROR: nginx is not installed."
+    exit 1
+fi
+
+NGINX_CONF_FILE="$(nginx -V 2>&1 | awk '{for (i = 1; i <= NF; i++) if ($i ~ /^--conf-path=/) {sub(/^--conf-path=/, "", $i); print $i; exit}}')"
+
+if [[ -z "$NGINX_CONF_FILE" ]]; then
+    echo "${0##*/}: ERROR: Unable to determine the Nginx configuration path."
+    exit 1
+fi
+
 NGINX_CONF_DIR="${NGINX_CONF_FILE%/*}"
 NGINX_SITES_AVAILABLE="$NGINX_CONF_DIR/sites-available"
 NGINX_SITES_ENABLED="$NGINX_CONF_DIR/sites-enabled"
-SELECTED_SITE="$2"
+SELECTED_SITE="${2-}"
+
+shopt -s nullglob
 
 ##
 # Script Functions
@@ -23,12 +36,13 @@ ngx_enable_site() {
     [[ ! "$SELECTED_SITE" ]] &&
         ngx_select_site "not_enabled"
 
+    ngx_validate_site
     [[ ! -e "$NGINX_SITES_AVAILABLE/$SELECTED_SITE" ]] &&
         ngx_error "Site does not appear to exist."
-    [[ -e "$NGINX_SITES_ENABLED/$SELECTED_SITE" ]] &&
+    [[ -e "$NGINX_SITES_ENABLED/$SELECTED_SITE" || -L "$NGINX_SITES_ENABLED/$SELECTED_SITE" ]] &&
         ngx_error "Site appears to already be enabled"
 
-    ln -sf "$NGINX_SITES_AVAILABLE/$SELECTED_SITE" "$NGINX_SITES_ENABLED/$SELECTED_SITE"
+    ln -sf -- "$NGINX_SITES_AVAILABLE/$SELECTED_SITE" "$NGINX_SITES_ENABLED/$SELECTED_SITE"
     ngx_reload
 }
 
@@ -36,12 +50,13 @@ ngx_disable_site() {
     [[ ! "$SELECTED_SITE" ]] &&
         ngx_select_site "is_enabled"
 
+    ngx_validate_site
     [[ ! -e "$NGINX_SITES_AVAILABLE/$SELECTED_SITE" ]] &&
         ngx_error "Site does not appear to be \'available\'. - Not Removing"
-    [[ ! -e "$NGINX_SITES_ENABLED/$SELECTED_SITE" ]] &&
+    [[ ! -e "$NGINX_SITES_ENABLED/$SELECTED_SITE" && ! -L "$NGINX_SITES_ENABLED/$SELECTED_SITE" ]] &&
         ngx_error "Site does not appear to be enabled."
 
-    rm -f "$NGINX_SITES_ENABLED/$SELECTED_SITE"
+    rm -f -- "$NGINX_SITES_ENABLED/$SELECTED_SITE"
     ngx_reload
 }
 
@@ -49,10 +64,11 @@ ngx_edit_site() {
     [[ ! "$SELECTED_SITE" ]] &&
         ngx_select_site "not_enabled"
 
+    ngx_validate_site
     [[ ! -e "$NGINX_SITES_AVAILABLE/$SELECTED_SITE" ]] &&
         ngx_error "Site does not appear to exist."
 
-    nano "$NGINX_SITES_AVAILABLE/$SELECTED_SITE"
+    nano -- "$NGINX_SITES_AVAILABLE/$SELECTED_SITE"
 }
 
 ngx_list_site() {
@@ -67,42 +83,53 @@ ngx_list_site() {
 ##
 
 ngx_select_site() {
-    sites_avail=($NGINX_SITES_AVAILABLE/*)
-    sa="${sites_avail[@]##*/}"
-    sites_en=($NGINX_SITES_ENABLED/*)
-    se="${sites_en[@]##*/}"
+    local -a sites_avail sites_en sites
+
+    sites_avail=("$NGINX_SITES_AVAILABLE"/*)
+    sites_en=("$NGINX_SITES_ENABLED"/*)
 
     case "$1" in
-        not_enabled) sites=$(comm -13 <(printf "%s\n" $se) <(printf "%s\n" $sa)) ;;
-        is_enabled) sites=$(comm -12 <(printf "%s\n" $se) <(printf "%s\n" $sa)) ;;
+        not_enabled) mapfile -t sites < <(comm -13 <(printf '%s\n' "${sites_en[@]##*/}") <(printf '%s\n' "${sites_avail[@]##*/}")) ;;
+        is_enabled) mapfile -t sites < <(comm -12 <(printf '%s\n' "${sites_en[@]##*/}") <(printf '%s\n' "${sites_avail[@]##*/}")) ;;
     esac
 
-    ngx_prompt "$sites"
+    [[ "${#sites[@]}" -gt 0 ]] || ngx_error "No matching sites available."
+    ngx_prompt "${sites[@]}"
 }
 
 ngx_prompt() {
-    sites=($1)
-    i=0
+    local -a sites=("$@")
+    local i
 
     echo "SELECT A WEBSITE:"
-    for site in ${sites[@]}; do
-        echo -e "$i:\t${sites[$i]}"
-        ((i++))
+    for i in "${!sites[@]}"; do
+        printf '%s:\t%s\n' "$i" "${sites[$i]}"
     done
 
-    read -p "Enter number for website: " i
+    IFS= read -r -p "Enter number for website: " i
+    [[ "$i" =~ ^[0-9]+$ && "$i" -lt "${#sites[@]}" ]] ||
+        ngx_error "Invalid site selection."
     SELECTED_SITE="${sites[$i]}"
 }
 
 ngx_sites() {
+    local -a files
+    local file
+
     case "$1" in
         available) dir="$NGINX_SITES_AVAILABLE" ;;
         enabled) dir="$NGINX_SITES_ENABLED" ;;
     esac
 
-    for file in $dir/*; do
-        echo -e "\t${file#*$dir/}"
+    files=("$dir"/*)
+    for file in "${files[@]}"; do
+        printf '\t%s\n' "${file#"$dir"/}"
     done
+}
+
+ngx_validate_site() {
+    [[ "$SELECTED_SITE" != */* && "$SELECTED_SITE" != "." && "$SELECTED_SITE" != ".." ]] ||
+        ngx_error "Invalid site name."
 }
 
 ngx_reload() {
@@ -126,11 +153,12 @@ ngx_help() {
     echo -e "\t<-e|--enable> <site>\tEnable site"
     echo -e "\t<-d|--disable> <site>\tDisable site"
     echo -e "\t<-x|--edit>\t\tEdit site"
+    echo -e "\t<-r|--reload>\t\tReload Nginx"
     echo -e "\t<-l|--list>\t\tList sites"
     echo -e "\t<-h|--help>\t\tDisplay help"
     echo -e "\n\tIf <site> is left out a selection of options will be presented."
-    echo -e "\tIt is assumed you are using the default sites-enabled and"
-    echo -e "\tsites-disabled located at $NGINX_CONF_DIR."
+    echo -e "\tIt is assumed you are using the default sites-available and"
+    echo -e "\tsites-enabled located at $NGINX_CONF_DIR."
 }
 
 ##
