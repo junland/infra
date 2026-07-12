@@ -2,8 +2,10 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2026 John Unland
 
+set -euo pipefail
+
 msg() {
-  echo " >>> $1"
+  printf ' >>> %s\n' "$1"
 }
 
 DEBUG=false
@@ -15,7 +17,9 @@ CONTAINER_IMAGE="localhost/yt-dl:latest"
 
 msg "Start $0 script @ $DATE_TIME"
 
-TUBE_CHANNEL_LIST=($(echo "${TUBE_CHANNEL_LIST[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+if ((${#TUBE_CHANNEL_LIST[@]})); then
+  mapfile -t TUBE_CHANNEL_LIST < <(printf '%s\n' "${TUBE_CHANNEL_LIST[@]}" | LC_ALL=C sort -u)
+fi
 
 # Make sure destination directories exist.
 if [ ! -d "$DEST_DIR" ]; then
@@ -25,23 +29,24 @@ fi
 
 for channel in "${TUBE_CHANNEL_LIST[@]}"; do
     CID_FILE="/run/yt-dl-$channel.cid"
-    CONTAINER_RUN_ARGS="-d --rm --cidfile $CID_FILE -v ${DEST_DIR}:/tmp --timeout=3600 --entrypoint /usr/local/bin/yt-dl-channel"
-    CONTAINER_ARGS="-i $channel -d /tmp"
+    CONTAINER_RUN_ARGS=(-d --rm --cidfile "$CID_FILE" -v "$DEST_DIR:/tmp" --timeout=3600 --entrypoint /usr/local/bin/yt-dl-channel)
+    CONTAINER_ARGS=(-i "$channel" -d /tmp)
 
     # Check if there's in progress downloads based on cid file, if so skip
-    if [[ -f $CID_FILE ]]; then
+    if [[ -f "$CID_FILE" ]]; then
         # Check if the container is still running
-        if [[ $(podman ps -q --no-trunc | grep "$(cat "$CID_FILE")") ]]; then
+        CONTAINER_ID=$(<"$CID_FILE")
+        if [[ -n "$CONTAINER_ID" ]] && podman container exists "$CONTAINER_ID"; then
             msg "Videos is already being downloaded for: $channel"
             continue
         else
             msg "Videos is not being downloaded for: $channel, removing cid file"
-            rm "$CID_FILE"
+            rm -f -- "$CID_FILE"
         fi
     fi
 
     msg "Running container for channel $channel"
-    podman run $CONTAINER_RUN_ARGS $CONTAINER_IMAGE $CONTAINER_ARGS
+    podman run "${CONTAINER_RUN_ARGS[@]}" "$CONTAINER_IMAGE" "${CONTAINER_ARGS[@]}"
 done
 
 exit 0
