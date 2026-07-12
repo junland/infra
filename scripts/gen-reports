@@ -2,34 +2,44 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2026 John Unland
 
-set -e
+set -euo pipefail
 
 msg() {
     echo " >>> $1"
 }
 
 LOG_DIR=/var/log/nginx
+REPORT_DIR="$LOG_DIR/reports"
 EXEC_DATE=$(date +"%m%d%Y_%H%M%S")
-LOG_FILES=($(ls ${LOG_DIR}/*.access.log))
+
+shopt -s nullglob
+LOG_FILES=("$LOG_DIR"/*.access.log)
+
+if [ "${#LOG_FILES[@]}" -eq 0 ]; then
+    msg "No access logs found in $LOG_DIR."
+    exit 1
+fi
 
 msg "Creating report dir..."
 
-mkdir -p $LOG_DIR/reports
+mkdir -p "$REPORT_DIR"
 
 msg "Creating reports..."
 
-for log_file in ${LOG_FILES[@]}; do
+REPORT_FILES=()
+for log_file in "${LOG_FILES[@]}"; do
     msg "Creating report for $log_file..."
-    goaccess $LOG_DIR/$log_file -o $LOG_DIR/reports/report-${log_file%.*}-$EXEC_DATE.html
+    report_file="$REPORT_DIR/report-${log_file##*/}"
+    report_file="${report_file%.*}-$EXEC_DATE.html"
+    goaccess "$log_file" -o "$report_file"
+    REPORT_FILES+=("$report_file")
 done
 
-cd $LOG_DIR/reports
-
-tar -cJvf $LOG_DIR/reports/reports-$EXEC_DATE.tar.gz *.html
+tar -czvf "$REPORT_DIR/reports-$EXEC_DATE.tar.gz" -C "$REPORT_DIR" -- "${REPORT_FILES[@]##*/}"
 
 msg "Cleaning..."
 
-rm -rvf $LOG_DIR/reports/*.html
+rm -vf -- "${REPORT_FILES[@]}"
 
 msg "Done!"
 
