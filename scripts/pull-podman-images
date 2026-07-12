@@ -8,18 +8,27 @@ msg() {
   echo " >>> $1"
 }
 
+# Make sure podman is installed.
+if ! command -v podman >/dev/null 2>&1; then
+    msg "Error: podman is not installed."
+    exit 1
+fi
+
 # Get a list of all Docker images (Repository and tag)
-IMAGES=$(podman images --format "{{.Repository}}:{{.Tag}}")
+IMAGES=$(podman images --format '{{.Repository}}:{{.Tag}}')
 
 # Loop through each image and pull the latest version
-for image in $IMAGES; do
+while IFS= read -r image; do
+    [ -n "$image" ] || continue
+
     # Check if the image is not from localhost or images named "<none>:<none>"
-    if ! echo "$image" | grep -q -E "(localhost|<none>:<none>)"; then
-        msg "Pulling $image"
-        podman pull "$image"
-    else
-        msg "Skipping $image"
-    fi
-done
+    case "$image" in
+        *localhost*|*'<none>:<none>'*) msg "Skipping $image" ;;
+        *)
+            msg "Pulling $image"
+            podman pull "$image"
+            ;;
+    esac
+done <<<"$IMAGES"
 
 msg "All images updated successfully"
