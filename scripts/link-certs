@@ -2,19 +2,17 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2026 John Unland
 
-set -e
+set -euo pipefail
 
 msg() {
     echo " >>> $1"
 }
 
-# Check if file exists
-
-CERT_DIR=${CERT_DIR:="/etc/pki/tls/certs"}
-KEY_DIR=${KEY_DIR:="/etc/pki/tls/private"}
-OCSP_DIR=${OCSP_DIR:="/etc/pki/tls/certs"}
-DOMAIN_NAME=$1
-DEST_DIR=$2
+CERT_DIR=${CERT_DIR:-"/etc/pki/tls/certs"}
+KEY_DIR=${KEY_DIR:-"/etc/pki/tls/private"}
+OCSP_DIR=${OCSP_DIR:-"/etc/pki/tls/certs"}
+DOMAIN_NAME=${1:-}
+DEST_DIR=${2:-}
 
 # Check if the domain name parameter is not empty.
 if [ -z "$DOMAIN_NAME" ]; then
@@ -54,22 +52,32 @@ fi
 
 msg "Linking cert for $DOMAIN_NAME"
 
-ln -sv "$CERT_DIR/$DOMAIN_NAME.cert" "$DEST_DIR/$DOMAIN_NAME.cert"
+if [ ! -f "$CERT_DIR/$DOMAIN_NAME.cert" ]; then
+    echo "Certificate file does not exist: $CERT_DIR/$DOMAIN_NAME.cert"
+    exit 1
+fi
+
+if [ ! -f "$KEY_DIR/$DOMAIN_NAME.key" ]; then
+    echo "Key file does not exist: $KEY_DIR/$DOMAIN_NAME.key"
+    exit 1
+fi
+
+ln -sfnv "$CERT_DIR/$DOMAIN_NAME.cert" "$DEST_DIR/$DOMAIN_NAME.cert"
 
 msg "Linking key for $DOMAIN_NAME"
 
-ln -sv "$KEY_DIR/$DOMAIN_NAME.key" "$DEST_DIR/$DOMAIN_NAME.cert.key"
+ln -sfnv "$KEY_DIR/$DOMAIN_NAME.key" "$DEST_DIR/$DOMAIN_NAME.cert.key"
 
 # Check if OCSP issuer file are present, if so link it.
 if [ -f "$OCSP_DIR/$DOMAIN_NAME.cert.pem.issuer" ]; then
     msg "Linking OCSP issuer for $DOMAIN_NAME"
-    ln -sv "$OCSP_DIR/$DOMAIN_NAME.cert.pem.issuer" "$DEST_DIR/$DOMAIN_NAME.cert.pem.issuer"
+    ln -sfnv "$OCSP_DIR/$DOMAIN_NAME.cert.pem.issuer" "$DEST_DIR/$DOMAIN_NAME.cert.pem.issuer"
 fi
 
 # Check if OCSP file are present, if so link it.
 if [ -f "$OCSP_DIR/$DOMAIN_NAME.cert.pem.ocsp" ]; then
     msg "Linking OCSP file for $DOMAIN_NAME"
-    ln -sv "$OCSP_DIR/$DOMAIN_NAME.cert.pem.ocsp" "$DEST_DIR/$DOMAIN_NAME.cert.pem.ocsp"
+    ln -sfnv "$OCSP_DIR/$DOMAIN_NAME.cert.pem.ocsp" "$DEST_DIR/$DOMAIN_NAME.cert.pem.ocsp"
 fi
 
 exit 0
