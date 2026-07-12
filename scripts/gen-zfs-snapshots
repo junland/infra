@@ -10,10 +10,23 @@ msg() {
 
 DATE_TIME=$(date +%m-%d-%Y-%s)
 
+# Make sure zfs is installed.
+if ! command -v zfs >/dev/null 2>&1; then
+    msg "zfs command not found..."
+    exit 1
+fi
+
 # Run snapshot on all ZFS datasets
-for dataset in $(zfs list -H -o name | grep -v archive); do
+datasets=$(zfs list -H -o name)
+while IFS= read -r dataset; do
+    [ -n "$dataset" ] || continue
+
+    case "$dataset" in
+        *archive*) continue ;;
+    esac
+
     msg "Taking snapshot of $dataset @ $DATE_TIME..."
-    zfs snapshot $dataset@$DATE_TIME
-done
+    zfs snapshot "${dataset}@${DATE_TIME}"
+done <<<"$datasets"
 
 exit 0
