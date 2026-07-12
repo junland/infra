@@ -2,13 +2,13 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2026 John Unland
 
-set -e
+set -euo pipefail
 
 msg() {
     echo " >>> $1"
 }
 
-CERT_FILE=$1
+CERT_FILE=${1-}
 
 # Check if the certificate file variable is not empty.
 if [ -z "$CERT_FILE" ]; then
@@ -23,26 +23,50 @@ fi
 
 msg "Getting issuer URL..."
 
-CERT_CA_ISSUER_URL=$(cat "$CERT_FILE" | openssl x509 -text -noout | grep "CA Issuers" | grep -Eo "(http|https)://[a-zA-Z0-9./?=_%:-]*")
+CERT_DETAILS=$(openssl x509 -in "$CERT_FILE" -text -noout)
+CERT_CA_ISSUER_URL=$(printf '%s\n' "$CERT_DETAILS" | grep -m 1 "CA Issuers" | grep -Eo "https?://[a-zA-Z0-9./?=_%:-]*") || true
+
+if [ -z "$CERT_CA_ISSUER_URL" ]; then
+    msg "No CA issuer URL found in $CERT_FILE."
+    exit 1
+fi
 
 msg "Getting OCSP URL..."
 
-CERT_CA_OCSP_URL=$(cat "$CERT_FILE" | openssl x509 -text -noout | grep "OCSP - URI" | grep -Eo "(http|https)://[a-zA-Z0-9./?=_%:-]*")
-CERT_CA_OCSP_URL_CLEAN=$(echo "$CERT_CA_OCSP_URL" | cut -d/ -f3)
+CERT_CA_OCSP_URL=$(printf '%s\n' "$CERT_DETAILS" | grep -m 1 "OCSP - URI" | grep -Eo "https?://[a-zA-Z0-9./?=_%:-]*") || true
+
+if [ -z "$CERT_CA_OCSP_URL" ]; then
+    msg "No OCSP URL found in $CERT_FILE."
+    exit 1
+fi
+
+CERT_CA_OCSP_URL_CLEAN=${CERT_CA_OCSP_URL#*://}
+CERT_CA_OCSP_URL_CLEAN=${CERT_CA_OCSP_URL_CLEAN%%/*}
+
+ISSUER_FILE=
+OCSP_FILE=
+cleanup() {
+    [ -z "$ISSUER_FILE" ] || rm -f -- "$ISSUER_FILE"
+    [ -z "$OCSP_FILE" ] || rm -f -- "$OCSP_FILE"
+}
+trap cleanup EXIT
+
+ISSUER_FILE=$(mktemp -- "${CERT_FILE}.issuer.XXXXXX")
+OCSP_FILE=$(mktemp -- "${CERT_FILE}.ocsp.XXXXXX")
 
 msg "Processing issuer content..."
 
-wget -q -O- "$CERT_CA_ISSUER_URL" | openssl x509 -inform DER -outform PEM -out "$CERT_FILE".issuer.new
+wget -q -O- "$CERT_CA_ISSUER_URL" | openssl x509 -inform DER -outform PEM -out "$ISSUER_FILE"
 
 msg "Creating OCSP file..."
 
-openssl ocsp -no_nonce -issuer "$CERT_FILE".issuer.new -cert "$CERT_FILE" -url "$CERT_CA_OCSP_URL" -header Host="$CERT_CA_OCSP_URL_CLEAN" -respout "$CERT_FILE".ocsp.new
+openssl ocsp -no_nonce -issuer "$ISSUER_FILE" -cert "$CERT_FILE" -url "$CERT_CA_OCSP_URL" -header Host="$CERT_CA_OCSP_URL_CLEAN" -respout "$OCSP_FILE"
 
 msg "Migrating issuer and OCSP file..."
 
-mv -vf "$CERT_FILE".issuer.new "$CERT_FILE".issuer
+mv -vf -- "$ISSUER_FILE" "$CERT_FILE".issuer
 
-mv -vf "$CERT_FILE".ocsp.new "$CERT_FILE".ocsp
+mv -vf -- "$OCSP_FILE" "$CERT_FILE".ocsp
 
 msg "Done!"
 
