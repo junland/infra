@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2026 John Unland
 
-set -e
+set -euo pipefail
 
 msg() {
-  echo " >>> $1"
+  printf ' >>> %s\n' "$1"
 }
 
 DATE_TIME=$(date "+%A %B %d %T %Y")
@@ -32,6 +32,6 @@ rsync -av --include='*/' --include='*.mp4' --include='*.webm' \
           --exclude='*.temp' --exclude='*.temp.webm' --exclude='*.temp.mp4' \
           --exclude='*.*.webm' --exclude='*.*.mp4' \
           --exclude='*' \
-          "$SOURCE_DIR/" "$DEST_DIR/"
+          -- "$SOURCE_DIR/" "$DEST_DIR/"
 
 exit 0
