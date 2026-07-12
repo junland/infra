@@ -2,13 +2,13 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2026 John Unland
 
-set -e
+set -euo pipefail
 
 msg() {
     echo " >>> $1"
 }
 
-CERT_LIST_FILE=$1
+CERT_LIST_FILE=${1-}
 
 # Check if the certificate list file variable is not empty.
 if [ -z "$CERT_LIST_FILE" ]; then
@@ -22,14 +22,14 @@ if [ ! -f "$CERT_LIST_FILE" ]; then
 fi
 
 # Make sure gen-ocsp is installed.
-if ! command -v gen-ocsp ; then
+if ! command -v gen-ocsp >/dev/null 2>&1; then
     msg "gen-ocsp is not installed."
     exit 1
 fi
 
 msg "Processing certificate list file..."
 
-while read -r CERT_FILE; do
+while IFS= read -r CERT_FILE || [ -n "$CERT_FILE" ]; do
     msg "Processing $CERT_FILE..."
 
     # Make sure the certificate file exists, if not skip it.
